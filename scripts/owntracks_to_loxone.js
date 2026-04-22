@@ -2,7 +2,7 @@
  * ============================================================
  *  SCRIPT : owntracks_to_loxone.js
  *  AUTEUR : Kevin (config) + GenSpark AI (génération)
- *  VERSION: 5.2.0
+ *  VERSION: 5.3.0
  *  DATE   : 2026-04-23
  * ============================================================
  *
@@ -515,12 +515,9 @@ function processPayload(userName, rawJson) {
 var detectedUsers = {};
 
 /**
- * Construit le chemin ioBroker mqtt.0 depuis le userName
+ * Construit le chemin ioBroker mqtt.0 (topic principal location)
  * Topic  : owntracks/<OWNTRACKS_USER>/<userName>
  * Chemin : mqtt.0.owntracks.<OWNTRACKS_USER>.<userName>
- *
- * @param {string} userName
- * @returns {string}
  */
 function mqttPath(userName) {
     var mqttUser = CONFIG.OWNTRACKS_USER || "owntracks";
@@ -528,78 +525,107 @@ function mqttPath(userName) {
 }
 
 /**
- * Découverte des utilisateurs existants dans mqtt.0
- * Pattern : mqtt.0.owntracks.<OWTTRACKS_USER>.*
+ * Sous-topics mqtt.0 créés automatiquement par l'adaptateur
+ * pour chaque utilisateur (un état par type de message reçu)
+ *
+ * Structure observée dans ioBroker :
+ *   mqtt.0.owntracks.owntracks.kevin           ← _type=location
+ *   mqtt.0.owntracks.owntracks.kevin.cmd       ← (null — commandes sortantes)
+ *   mqtt.0.owntracks.owntracks.kevin.dump      ← _type=dump
+ *   mqtt.0.owntracks.owntracks.kevin.status    ← _type=status
+ *   mqtt.0.owntracks.owntracks.kevin.step      ← _type=steps
+ *   mqtt.0.owntracks.owntracks.kevin.waypoint  ← _type=waypoint
  */
-function discoverUsers() {
-    var mqttUser = CONFIG.OWNTRACKS_USER || "owntracks";
-    var pattern  = "mqtt.0.owntracks." + mqttUser + ".*";
-
-    try {
-        var ids = $(pattern);
-        if (!ids || ids.length === 0) {
-            log_debug("Aucun utilisateur OwnTracks dans mqtt.0 (téléphone connecté ?)");
-            return;
-        }
-        ids.each(function(id) {
-            // mqtt.0.owntracks.owntracks.kevin → parts[3] = kevin
-            var parts    = id.split(".");
-            var userName = parts[3];
-            // Ignorer les sous-chemins (cmd, status...)
-            if (userName && parts.length === 4 && !detectedUsers[userName]) {
-                detectedUsers[userName] = true;
-                log_debug("✅ Utilisateur détecté : " + userName);
-                watchUser(userName);
-            }
-        });
-    } catch(e) {
-        log_debug("discoverUsers : " + e.message);
-    }
+function mqttSubPaths(userName) {
+    var base = mqttPath(userName);
+    return [
+        base,
+        base + ".dump",
+        base + ".status",
+        base + ".step",
+        base + ".waypoint"
+        // base + ".cmd" ignoré — c'est une sortie, pas une entrée
+    ];
 }
 
 /**
- * Surveille le chemin mqtt.0 d'un utilisateur
- * Déclenché à chaque nouveau payload JSON reçu
- *
- * @param {string} userName
+ * Surveille TOUS les sous-topics mqtt.0 d'un utilisateur
+ * + push initial au démarrage pour chaque sous-topic
  */
 function watchUser(userName) {
-    var path = mqttPath(userName);
-    log_debug("👁️  Surveillance mqtt.0 activée pour : " + userName + " [" + path + "]");
+    var paths = mqttSubPaths(userName);
+    var base  = mqttPath(userName);
+    log_debug("👁️  Surveillance mqtt.0 activée pour : " + userName + " [" + base + ".*]");
 
-    on({ id: path, change: "any" }, function(obj) {
-        if (obj.state && obj.state.val) {
-            processPayload(userName, obj.state.val);
-        }
-    });
+    paths.forEach(function(p) {
+        on({ id: p, change: "any" }, function(obj) {
+            if (obj.state && obj.state.val) {
+                processPayload(userName, obj.state.val);
+            }
+        });
 
-    // Push initial — envoie les données actuelles dès le démarrage
-    getState(path, function(err, state) {
-        if (!err && state && state.val) {
-            log_debug("📤 Push initial pour : " + userName);
-            processPayload(userName, state.val);
-        }
+        // Push initial — données déjà présentes dans ioBroker au démarrage
+        getState(p, function(err, state) {
+            if (!err && state && state.val) {
+                log_debug("📤 Push initial [" + p.split(".").pop() + "] → " + userName);
+                processPayload(userName, state.val);
+            }
+        });
     });
 }
 
+/**
+ * Initialise les utilisateurs depuis CONFIG.USERS (garanti au démarrage)
+ * + découverte dynamique dans mqtt.0 pour les téléphones inconnus
+ */
+function discoverUsers() {
+    // ── 1. Utilisateurs connus depuis CONFIG.USERS ─────────────
+    (CONFIG.USERS || []).forEach(function(userName) {
+        if (!detectedUsers[userName]) {
+            detectedUsers[userName] = true;
+            log_debug("✅ Utilisateur initialisé (CONFIG.USERS) : " + userName);
+            watchUser(userName);
+        }
+    });
+
+    // ── 2. Découverte dynamique dans mqtt.0 ────────────────────
+    var mqttUser = CONFIG.OWNTRACKS_USER || "owntracks";
+    try {
+        var ids = $("mqtt.0.owntracks." + mqttUser + ".*");
+        if (ids && ids.length > 0) {
+            ids.each(function(id) {
+                var parts    = id.split(".");
+                var userName = parts[3]; // mqtt.0.owntracks.owntracks.<userName>[.<sub>]
+                if (userName && !detectedUsers[userName]) {
+                    detectedUsers[userName] = true;
+                    log_debug("🆕 Téléphone découvert dans mqtt.0 : " + userName);
+                    watchUser(userName);
+                }
+            });
+        }
+    } catch(e) {
+        log_debug("discoverUsers (mqtt.0 scan) : " + e.message);
+    }
+}
+
 // ============================================================
-// 🆕  DÉTECTION AUTOMATIQUE DES NOUVEAUX UTILISATEURS
+// 🆕  DÉTECTION AUTOMATIQUE DES NOUVEAUX TÉLÉPHONES
 // ============================================================
 // Dès qu'un nouveau téléphone publie pour la première fois,
-// son chemin mqtt.0 est créé et le script le détecte
+// il est détecté via la regex sur mqtt.0 et ajouté dynamiquement
 
 on({
     id    : new RegExp("^mqtt\\.0\\.owntracks\\." +
                 (CONFIG.OWNTRACKS_USER || "owntracks").replace(".", "\\.") +
-                "\\.[^.]+$"),
+                "\\.[^.]+"),   // matche kevin ET kevin.dump, kevin.status, etc.
     type  : "state",
     change: "any"
 }, function(obj) {
     var parts    = obj.id.split(".");
     var userName = parts[3];
-    if (userName && parts.length === 4 && !detectedUsers[userName]) {
+    if (userName && !detectedUsers[userName]) {
         detectedUsers[userName] = true;
-        log_debug("🆕 Nouvel utilisateur détecté automatiquement : " + userName);
+        log_debug("🆕 Nouveau téléphone détecté automatiquement : " + userName);
         watchUser(userName);
     }
 });
@@ -610,13 +636,16 @@ on({
 
 setInterval(function() {
     log_debug("🔄 Polling de sécurité — synchronisation Loxone...");
+    // Re-découverte (nouveaux téléphones éventuels)
     discoverUsers();
+    // Re-push de TOUS les sous-topics vers Loxone
     Object.keys(detectedUsers).forEach(function(userName) {
-        var path = mqttPath(userName);
-        getState(path, function(err, state) {
-            if (!err && state && state.val) {
-                processPayload(userName, state.val);
-            }
+        mqttSubPaths(userName).forEach(function(p) {
+            getState(p, function(err, state) {
+                if (!err && state && state.val) {
+                    processPayload(userName, state.val);
+                }
+            });
         });
     });
 }, CONFIG.POLLING_INTERVAL_MS);
@@ -625,7 +654,7 @@ setInterval(function() {
 // 🚀  DÉMARRAGE
 // ============================================================
 
-log("[OwnTracks→Loxone] ✅ Script v5.2 démarré !", "info");
+log("[OwnTracks→Loxone] ✅ Script v5.3 démarré !", "info");
 log("[OwnTracks→Loxone] 🎯 Loxone    : " + CONFIG.LOXONE_IP + ":" + CONFIG.LOXONE_PORT, "info");
 log("[OwnTracks→Loxone] 📡 Source    : mqtt.0 (JSON brut — tous les champs iOS)", "info");
 log("[OwnTracks→Loxone] 🏠 Zone HOME : " + ((CONFIG.ZONES && CONFIG.ZONES.HOME) ? CONFIG.ZONES.HOME : "Maison"), "info");
