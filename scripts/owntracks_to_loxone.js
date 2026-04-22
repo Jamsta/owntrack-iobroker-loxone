@@ -578,19 +578,20 @@ var detectedUsers = {};
 
 /**
  * Découverte de tous les utilisateurs OwnTracks connus dans ioBroker
- * Utilise getStates() — API standard JavaScript ioBroker
+ * Utilise $() — sélecteur natif de l'adaptateur JavaScript ioBroker
  */
 function discoverUsers() {
-    // On cherche tous les états latitude de tous les utilisateurs
+    // $() retourne tous les IDs d'états qui matchent le pattern
     // Pattern : owntracks.0.users.*.latitude
     var pattern = CONFIG.OWNTRACKS_INSTANCE + ".users.*.latitude";
 
-    getStates(pattern, function(err, states) {
-        if (err || !states) {
-            log_debug("Aucun utilisateur OwnTracks trouvé pour l'instant.");
+    try {
+        var ids = $(pattern);
+        if (!ids || ids.length === 0) {
+            log_debug("Aucun utilisateur OwnTracks trouvé pour l'instant (owntracks.0 a reçu des données ?).");
             return;
         }
-        Object.keys(states).forEach(function(id) {
+        ids.each(function(id) {
             // id = owntracks.0.users.Kevin.latitude → parts[3] = Kevin
             var parts    = id.split(".");
             var userName = parts[3];
@@ -600,7 +601,9 @@ function discoverUsers() {
                 watchUser(userName);
             }
         });
-    });
+    } catch(e) {
+        log_debug("discoverUsers : " + e.message + " (normal si owntracks.0 n'a pas encore reçu de données)");
+    }
 }
 
 // ============================================================
