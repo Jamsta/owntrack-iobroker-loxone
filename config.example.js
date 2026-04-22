@@ -34,7 +34,7 @@ const CONFIG = {
     // 📡  ADAPTATEUR OWNTRACKS (MQTT interne ioBroker)
     // ----------------------------------------------------------
     OWNTRACKS_INSTANCE  : "owntracks.0", // Instance de l'adaptateur (ne pas changer)
-    OWNTRACKS_MQTT_PORT : 1884,          // Port MQTT de l'adaptateur owntracks.0
+    OWNTRACKS_MQTT_PORT : 1883,          // Port MQTT de l'adaptateur owntracks.0
     OWNTRACKS_USER      : "owntracks",   // Utilisateur MQTT OwnTracks
     OWNTRACKS_PASS      : "OWNTRACKS_PASS", // Mot de passe MQTT OwnTracks
 
