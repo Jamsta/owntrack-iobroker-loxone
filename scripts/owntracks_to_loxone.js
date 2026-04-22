@@ -2,7 +2,7 @@
  * ============================================================
  *  SCRIPT : owntracks_to_loxone.js
  *  AUTEUR : Kevin (config) + GenSpark AI (génération)
- *  VERSION: 5.3.0
+ *  VERSION: 5.4.0
  *  DATE   : 2026-04-23
  * ============================================================
  *
@@ -590,13 +590,22 @@ function discoverUsers() {
 
     // ── 2. Découverte dynamique dans mqtt.0 ────────────────────
     var mqttUser = CONFIG.OWNTRACKS_USER || "owntracks";
+
+    // Noms à ignorer : nœuds techniques mqtt.0 ou OWNTRACKS_USER lui-même
+    var RESERVED = ["owntracks", "mqtt", "info", "clients", "cmd", "status",
+                    "dump", "step", "waypoint", "event", "lwt", "config"];
+
     try {
         var ids = $("mqtt.0.owntracks." + mqttUser + ".*");
         if (ids && ids.length > 0) {
             ids.each(function(id) {
                 var parts    = id.split(".");
                 var userName = parts[3]; // mqtt.0.owntracks.owntracks.<userName>[.<sub>]
-                if (userName && !detectedUsers[userName]) {
+                // Ignorer : nœuds réservés, nœud == OWNTRACKS_USER, déjà connus
+                if (userName
+                    && RESERVED.indexOf(userName) === -1
+                    && userName !== mqttUser
+                    && !detectedUsers[userName]) {
                     detectedUsers[userName] = true;
                     log_debug("🆕 Téléphone découvert dans mqtt.0 : " + userName);
                     watchUser(userName);
@@ -654,7 +663,7 @@ setInterval(function() {
 // 🚀  DÉMARRAGE
 // ============================================================
 
-log("[OwnTracks→Loxone] ✅ Script v5.3 démarré !", "info");
+log("[OwnTracks→Loxone] ✅ Script v5.4 démarré !", "info");
 log("[OwnTracks→Loxone] 🎯 Loxone    : " + CONFIG.LOXONE_IP + ":" + CONFIG.LOXONE_PORT, "info");
 log("[OwnTracks→Loxone] 📡 Source    : mqtt.0 (JSON brut — tous les champs iOS)", "info");
 log("[OwnTracks→Loxone] 🏠 Zone HOME : " + ((CONFIG.ZONES && CONFIG.ZONES.HOME) ? CONFIG.ZONES.HOME : "Maison"), "info");
