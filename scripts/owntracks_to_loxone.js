@@ -2,7 +2,7 @@
  * ============================================================
  *  SCRIPT : owntracks_to_loxone.js
  *  AUTEUR : Kevin (config) + GenSpark AI (génération)
- *  VERSION: 5.0.0
+ *  VERSION: 5.1.0
  *  DATE   : 2026-04-23
  * ============================================================
  *
@@ -421,9 +421,61 @@ function processPayload(userName, rawJson) {
 
     // ── _type = steps ─────────────────────────────────────────
     else if (data._type === "steps") {
-        if (data.steps !== undefined) sendToLoxone(loxoneName(userName, "steps"),     data.steps);
-        if (data.from  !== undefined) sendToLoxone(loxoneName(userName, "stepsFrom"), data.from);
-        if (data.to    !== undefined) sendToLoxone(loxoneName(userName, "stepsTo"),   data.to);
+        // Podomètre iOS (envoyé après cmdReportSteps ou automatiquement)
+        if (data.steps      !== undefined) sendToLoxone(loxoneName(userName, "steps"),       data.steps);
+        if (data.from       !== undefined) sendToLoxone(loxoneName(userName, "stepsFrom"),   data.from);
+        if (data.to         !== undefined) sendToLoxone(loxoneName(userName, "stepsTo"),     data.to);
+        if (data.distance   !== undefined) sendToLoxone(loxoneName(userName, "stepsDistance"),  data.distance);
+        if (data.floorsup   !== undefined) sendToLoxone(loxoneName(userName, "stepsFloorsUp"),  data.floorsup);
+        if (data.floorsdown !== undefined) sendToLoxone(loxoneName(userName, "stepsFloorsDown"),data.floorsdown);
+        if (data.tst        !== undefined) sendToLoxone(loxoneName(userName, "stepsTst"),    data.tst);
+    }
+
+    // ── _type = waypoint ──────────────────────────────────────
+    // Reçu quand l'utilisateur crée/modifie une zone dans l'app
+    else if (data._type === "waypoint") {
+        // Stocker la dernière zone créée/modifiée
+        if (data.desc !== undefined) sendToLoxone(loxoneName(userName, "lastWaypointDesc"), data.desc);
+        if (data.lat  !== undefined) sendToLoxone(loxoneName(userName, "lastWaypointLat"),  data.lat);
+        if (data.lon  !== undefined) sendToLoxone(loxoneName(userName, "lastWaypointLon"),  data.lon);
+        if (data.rad  !== undefined) sendToLoxone(loxoneName(userName, "lastWaypointRad"),  data.rad);
+        if (data.rid  !== undefined) sendToLoxone(loxoneName(userName, "lastWaypointRid"),  data.rid);
+        if (data.tst  !== undefined) sendToLoxone(loxoneName(userName, "lastWaypointTst"),  data.tst);
+        log_debug("🗺️  Waypoint reçu : " + (data.desc || "?") + " r=" + (data.rad || "?") + "m");
+    }
+
+    // ── _type = dump ──────────────────────────────────────────
+    // Reçu en réponse à cmdDump — contient la config complète de l'app
+    else if (data._type === "dump") {
+        var conf = data.configuration || {};
+        // Infos utiles extraites de la config
+        if (conf.deviceId  !== undefined) sendToLoxone(loxoneName(userName, "deviceId"),     conf.deviceId);
+        if (conf.tid       !== undefined) sendToLoxone(loxoneName(userName, "trackerID"),     conf.tid);
+        if (conf.monitoring !== undefined) sendToLoxone(loxoneName(userName, "monitoringMode"), conf.monitoring);
+        if (conf.extendedData !== undefined) sendToLoxone(loxoneName(userName, "extendedData"), conf.extendedData ? 1 : 0);
+        if (conf.cmd       !== undefined) sendToLoxone(loxoneName(userName, "cmdEnabled"),    conf.cmd ? 1 : 0);
+        // Nombre de waypoints configurés sur l'iPhone
+        if (conf.waypoints !== undefined) sendToLoxone(loxoneName(userName, "waypointsCount"), conf.waypoints.length);
+        log_debug("📊 Dump reçu pour " + userName + " — " + (conf.waypoints ? conf.waypoints.length : 0) + " waypoint(s)");
+    }
+
+    // ── _type = status ────────────────────────────────────────
+    // Reçu en réponse à cmdDump ou au démarrage de l'app
+    else if (data._type === "status") {
+        var ios = data.iOS || {};
+        if (ios.deviceModel         !== undefined) sendToLoxone(loxoneName(userName, "deviceModel"),    ios.deviceModel);
+        if (ios.deviceSystemVersion !== undefined) sendToLoxone(loxoneName(userName, "iOSVersion"),     ios.deviceSystemVersion);
+        if (ios.version             !== undefined) sendToLoxone(loxoneName(userName, "appVersion"),     ios.version);
+        if (ios.locale              !== undefined) sendToLoxone(loxoneName(userName, "locale"),         ios.locale);
+        if (ios.backgroundRefreshStatus !== undefined) {
+            var bgOk = ios.backgroundRefreshStatus === "UIBackgroundRefreshStatusAvailable" ? 1 : 0;
+            sendToLoxone(loxoneName(userName, "backgroundRefresh"), bgOk);
+        }
+        if (ios.locationManagerAuthorizationStatus !== undefined) {
+            var gpsOk = ios.locationManagerAuthorizationStatus === "kCLAuthorizationStatusAuthorizedAlways" ? 1 : 0;
+            sendToLoxone(loxoneName(userName, "gpsAuthorized"), gpsOk);
+        }
+        log_debug("📱 Status reçu pour " + userName + " — iOS " + (ios.deviceSystemVersion || "?") + " / OwnTracks " + (ios.version || "?"));
     }
 
     // ── _type = lwt ───────────────────────────────────────────
@@ -432,6 +484,11 @@ function processPayload(userName, rawJson) {
         var elapsed = data.tst ? now - data.tst : 0;
         sendToLoxone(loxoneName(userName, "lastSeen"),        data.tst || now);
         sendToLoxone(loxoneName(userName, "lastSeenElapsed"), elapsed);
+    }
+
+    // ── _type inconnu ─────────────────────────────────────────
+    else {
+        log_debug("⚠️  Payload _type=" + data._type + " non géré pour " + userName);
     }
 }
 
@@ -552,7 +609,7 @@ setInterval(function() {
 // 🚀  DÉMARRAGE
 // ============================================================
 
-log("[OwnTracks→Loxone] ✅ Script v5.0 démarré !", "info");
+log("[OwnTracks→Loxone] ✅ Script v5.1 démarré !", "info");
 log("[OwnTracks→Loxone] 🎯 Loxone    : " + CONFIG.LOXONE_IP + ":" + CONFIG.LOXONE_PORT, "info");
 log("[OwnTracks→Loxone] 📡 Source    : mqtt.0 (JSON brut — tous les champs iOS)", "info");
 log("[OwnTracks→Loxone] 🏠 Zone HOME : " + ((CONFIG.ZONES && CONFIG.ZONES.HOME) ? CONFIG.ZONES.HOME : "Maison"), "info");
