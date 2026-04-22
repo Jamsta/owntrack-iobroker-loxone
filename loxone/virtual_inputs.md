@@ -1,4 +1,4 @@
-# Entrées Virtuelles Loxone — OwnTracks iOS (Complet)
+# Entrées Virtuelles Loxone — OwnTracks iOS v5.4
 
 ## Introduction
 
@@ -15,309 +15,242 @@ http://LOXONE_USER:LOXONE_PASS@LOXONE_IP/dev/sps/io/<NOM_ENTREE>/<VALEUR>
 ## Comment créer une Virtual HTTP Input dans Loxone Config
 
 1. **Loxone Config** → Périphériques virtuels → **Ajouter** → **Entrée HTTP virtuelle**
-2. **Nom** : exactement comme indiqué dans les tableaux ci-dessous
-3. **Commande pour ON/Analogue** : `/dev/sps/io/<NOM_ENTREE>/<VALEUR>`
+2. **Nom** : exactement comme indiqué ci-dessous
+3. **Commande pour ON/Analogue** : `/dev/sps/io/<NOM_ENTREE>/<v>`
 4. Répéter pour chaque entrée
 
-> ⚠️ Les noms sont **sensibles à la casse** — respecter majuscules/minuscules
+> ⚠️ Les noms sont **sensibles à la casse** — respecter exactement majuscules/minuscules
+> ⚠️ Remplacer `<user>` par le DeviceID en minuscules : `kevin`, `carole`, etc.
 
 ---
 
-## Entrées à créer — PAR UTILISATEUR
+## 📍 Position GPS (8 entrées)
 
-Remplace `<USER>` par : `Kevin`, `David`, `Carole`...
-
-> ✅ **DeviceID automatique** : le script détecte le DeviceID (`iPhone`, `GalaxyS24`…)
-> depuis le champ `topic` ioBroker — aucune configuration manuelle dans `config.js`.
-> Les entrées virtuelles Loxone ne changent pas : elles utilisent toujours le `username`
-> (`Kevin`, `David`, `Carole`) — le DeviceID est invisible pour Loxone.
-
----
-
-### 📍 Position GPS
-
-| Nom entrée Loxone               | Type        | Unité   | Description                              |
-|---------------------------------|-------------|---------|------------------------------------------|
-| `OT_<USER>_latitude`            | Analogique  | degrés  | Latitude GPS                             |
-| `OT_<USER>_longitude`           | Analogique  | degrés  | Longitude GPS                            |
-| `OT_<USER>_accuracy`            | Analogique  | mètres  | Précision horizontale GPS (↓ = meilleur) |
-| `OT_<USER>_altitude`            | Analogique  | mètres  | Altitude au-dessus du niveau de la mer   |
-| `OT_<USER>_verticalAccuracy`    | Analogique  | mètres  | Précision verticale de l'altitude (iOS)  |
-| `OT_<USER>_velocity`            | Analogique  | km/h    | Vitesse de déplacement                   |
-| `OT_<USER>_course`              | Analogique  | degrés  | Cap / direction (0-360°) (iOS)           |
-| `OT_<USER>_pressure`            | Analogique  | kPa     | Pression barométrique (iOS, extendedData)|
+| Nom entrée Loxone | Type | Unité | Description |
+|---|---|---|---|
+| `OT_<user>_latitude` | Analogique | degrés | Latitude GPS |
+| `OT_<user>_longitude` | Analogique | degrés | Longitude GPS |
+| `OT_<user>_accuracy` | Analogique | mètres | Précision horizontale GPS (↓ = meilleur) |
+| `OT_<user>_altitude` | Analogique | mètres | Altitude au-dessus du niveau de la mer |
+| `OT_<user>_verticalAccuracy` | Analogique | mètres | Précision verticale de l'altitude (iOS) |
+| `OT_<user>_velocity` | Analogique | km/h | Vitesse de déplacement |
+| `OT_<user>_course` | Analogique | degrés | Cap / direction (0-360°) |
+| `OT_<user>_pressure` | Analogique | kPa | Pression barométrique (iOS + extendedData) |
 
 ---
 
-### 🔋 Batterie téléphone
+## 🔋 Batterie (2 entrées)
 
-| Nom entrée Loxone               | Type        | Unité   | Description                              |
-|---------------------------------|-------------|---------|------------------------------------------|
-| `OT_<USER>_battery`             | Analogique  | %       | Niveau de batterie du téléphone          |
-| `OT_<USER>_batteryStatus`       | Analogique  | 0-3     | 0=inconnu 1=débranché 2=charge 3=plein   |
-
----
-
-### ⏱️ Horodatage
-
-| Nom entrée Loxone               | Type        | Unité   | Description                              |
-|---------------------------------|-------------|---------|------------------------------------------|
-| `OT_<USER>_timestamp`           | Analogique  | epoch   | Timestamp UNIX du fix GPS                |
-| `OT_<USER>_created_at`          | Analogique  | epoch   | Timestamp construction du message (iOS)  |
-| `OT_<USER>_datetime`            | Texte       | —       | Date/heure lisible (ISO string)          |
+| Nom entrée Loxone | Type | Unité | Description |
+|---|---|---|---|
+| `OT_<user>_battery` | Analogique | % | Niveau de batterie du téléphone |
+| `OT_<user>_batteryStatus` | Analogique | 0-3 | 0=inconnu / 1=débranché / 2=charge / 3=plein |
 
 ---
 
-### 📶 Connectivité réseau
+## ⏱️ Horodatage (2 entrées)
 
-| Nom entrée Loxone               | Type        | Unité   | Description                              |
-|---------------------------------|-------------|---------|------------------------------------------|
-| `OT_<USER>_connection`          | Texte       | —       | Type : "w"=WiFi / "m"=mobile / "o"=offline |
-| `OT_<USER>_connectionInt`       | Analogique  | 0/1/2   | 0=offline / 1=mobile / 2=WiFi (numérique)|
-| `OT_<USER>_ssid`                | Texte       | —       | Nom du réseau WiFi (iOS)                 |
-| `OT_<USER>_bssid`               | Texte       | —       | Adresse MAC du point d'accès WiFi (iOS)  |
+| Nom entrée Loxone | Type | Unité | Description |
+|---|---|---|---|
+| `OT_<user>_timestamp` | Analogique | epoch | Timestamp UNIX du fix GPS |
+| `OT_<user>_datetime` | Texte | — | Date/heure lisible ex: "23/04/2026 01:22:29" |
 
 ---
 
-### 📍 Zones géographiques (Regions / Waypoints)
+## 📶 Connectivité réseau (4 entrées)
 
-| Nom entrée Loxone               | Type        | Unité   | Description                              |
-|---------------------------------|-------------|---------|------------------------------------------|
-| `OT_<USER>_inregions`           | Texte       | JSON[]  | Zones actuelles ex: `["Maison","Garage"]`|
-| `OT_<USER>_inrids`              | Texte       | JSON[]  | IDs des zones actuelles (iOS)            |
-| `OT_<USER>_isHome`              | Analogique  | 0/1     | 1 = dans la zone HOME / 0 = absent       |
-| `OT_<USER>_regionRadius`        | Analogique  | mètres  | Rayon de la zone lors enter/leave (iOS)  |
-
----
-
-### 🚶 Activité & Mouvement
-
-| Nom entrée Loxone               | Type        | Unité   | Description                              |
-|---------------------------------|-------------|---------|------------------------------------------|
-| `OT_<USER>_motionactivities`    | Texte       | —       | stationary/walking/running/automotive/cycling (iOS) |
-| `OT_<USER>_monitoringMode`      | Analogique  | 1/2     | 1=significant (éco) / 2=move (précis) (iOS) |
+| Nom entrée Loxone | Type | Unité | Description |
+|---|---|---|---|
+| `OT_<user>_connection` | Texte | — | "w"=WiFi / "m"=mobile / "o"=offline |
+| `OT_<user>_connectionInt` | Analogique | 0/1/2 | 0=offline / 1=mobile / 2=WiFi |
+| `OT_<user>_ssid` | Texte | — | Nom du réseau WiFi (iOS + extendedData) |
+| `OT_<user>_bssid` | Texte | — | Adresse MAC du point d'accès WiFi (iOS) |
 
 ---
 
-### 🎯 Déclencheur de mise à jour
+## 📍 Zones géographiques (6 entrées)
 
-| Nom entrée Loxone               | Type        | Unité   | Description                              |
-|---------------------------------|-------------|---------|------------------------------------------|
-| `OT_<USER>_trigger`             | Texte       | —       | p=ping / c=zone / C=follow / b=beacon / r=cmd / u=manuel / t=timer / v=iOS |
-
----
-
-### 📌 Point d'intérêt
-
-| Nom entrée Loxone               | Type        | Unité   | Description                              |
-|---------------------------------|-------------|---------|------------------------------------------|
-| `OT_<USER>_poi`                 | Texte       | —       | Nom du point d'intérêt (iOS)             |
-| `OT_<USER>_tag`                 | Texte       | —       | Tag associé à la position (iOS)          |
+| Nom entrée Loxone | Type | Unité | Description |
+|---|---|---|---|
+| `OT_<user>_inregions` | Texte | JSON[] | Zones actives ex: `["Maison","Ecole Gustave"]` |
+| `OT_<user>_inregionsCount` | Analogique | entier | Nombre de zones actives simultanément |
+| `OT_<user>_isHome` | Analogique | 0/1 | 1 = dans la zone HOME (CONFIG.ZONES.HOME) |
+| `OT_<user>_isWork` | Analogique | 0/1 | 1 = dans la zone WORK (CONFIG.ZONES.WORK) |
+| `OT_<user>_currentZone` | Texte | — | Nom de la zone principale actuelle (ou vide) |
+| `OT_<user>_inrids` | Texte | JSON[] | IDs internes des zones actives |
 
 ---
 
-### 🏷️ Identifiant utilisateur
+## 🚶 Activité & Mouvement (4 entrées)
 
-| Nom entrée Loxone               | Type        | Unité   | Description                              |
-|---------------------------------|-------------|---------|------------------------------------------|
-| `OT_<USER>_trackerID`           | Texte       | —       | Initiales (2 caractères max)             |
-| `OT_<USER>_topic`               | Texte       | —       | Topic MQTT source                        |
-
----
-
-### 🔔 Transitions (entrée/sortie de zones) — iOS uniquement
-
-| Nom entrée Loxone                    | Type        | Unité   | Description                              |
-|--------------------------------------|-------------|---------|------------------------------------------|
-| `OT_<USER>_lastTransitionEvent`      | Texte       | —       | "enter" ou "leave"                       |
-| `OT_<USER>_lastTransitionEventInt`   | Analogique  | 0/1     | 1=enter / 0=leave (numérique)            |
-| `OT_<USER>_lastTransitionRegion`     | Texte       | —       | Nom de la zone concernée                 |
-| `OT_<USER>_lastTransitionRegionId`   | Texte       | —       | ID de la zone concernée (iOS)            |
-| `OT_<USER>_lastTransitionLat`        | Analogique  | degrés  | Latitude de l'événement                  |
-| `OT_<USER>_lastTransitionLon`        | Analogique  | degrés  | Longitude de l'événement                 |
-| `OT_<USER>_lastTransitionAcc`        | Analogique  | mètres  | Précision GPS à l'événement              |
-| `OT_<USER>_lastTransitionTst`        | Analogique  | epoch   | Timestamp de l'événement                 |
-| `OT_<USER>_lastTransitionTrigger`    | Texte       | —       | "c"=zone géo / "b"=beacon                |
+| Nom entrée Loxone | Type | Unité | Description |
+|---|---|---|---|
+| `OT_<user>_motionactivities` | Texte | — | stationary / walking / running / automotive / cycling |
+| `OT_<user>_monitoringMode` | Analogique | 1/2 | 1=significant (éco batterie) / 2=move (précis) |
+| `OT_<user>_trigger` | Texte | — | p=ping / c=zone / r=cmd / u=manuel / t=timer |
+| `OT_<user>_tag` | Texte | — | Nom de la zone actuelle (tag OwnTracks) |
 
 ---
 
-### 👣 Podomètre (Steps) — iOS uniquement
+## 🏷️ Identifiant (2 entrées)
 
-| Nom entrée Loxone               | Type        | Unité   | Description                              |
-|---------------------------------|-------------|---------|------------------------------------------|
-| `OT_<USER>_steps`               | Analogique  | pas     | Nombre de pas (-1 si non supporté)       |
-| `OT_<USER>_stepsFrom`           | Analogique  | epoch   | Début de la période mesurée              |
-| `OT_<USER>_stepsTo`             | Analogique  | epoch   | Fin de la période mesurée                |
-
----
-
-### 📡 Connexion téléphone (LWT)
-
-| Nom entrée Loxone               | Type        | Unité   | Description                              |
-|---------------------------------|-------------|---------|------------------------------------------|
-| `OT_<USER>_lastSeen`            | Analogique  | epoch   | Timestamp du dernier contact             |
-| `OT_<USER>_lastSeenElapsed`     | Analogique  | secondes| Secondes écoulées depuis le dernier contact |
+| Nom entrée Loxone | Type | Unité | Description |
+|---|---|---|---|
+| `OT_<user>_trackerID` | Texte | — | Initiales affichées sur la carte (ex: "KV") |
+| `OT_<user>_topic` | Texte | — | Topic MQTT source (ex: owntracks/owntracks/kevin) |
 
 ---
 
-## Récapitulatif — Liste complète pour copier/coller
+## 🔔 Transitions entrée/sortie de zones (7 entrées)
 
-### Pour Kevin (44 entrées)
+| Nom entrée Loxone | Type | Unité | Description |
+|---|---|---|---|
+| `OT_<user>_lastTransitionEvent` | Texte | — | "enter" ou "leave" |
+| `OT_<user>_lastTransitionEventInt` | Analogique | 0/1 | 1=enter / 0=leave |
+| `OT_<user>_lastTransitionRegion` | Texte | — | Nom de la zone concernée |
+| `OT_<user>_lastTransitionRegionId` | Texte | — | ID interne de la zone |
+| `OT_<user>_lastTransitionLat` | Analogique | degrés | Latitude à l'événement |
+| `OT_<user>_lastTransitionLon` | Analogique | degrés | Longitude à l'événement |
+| `OT_<user>_lastTransitionTst` | Analogique | epoch | Timestamp de l'événement |
+
+---
+
+## 👣 Podomètre / Steps (7 entrées)
+
+| Nom entrée Loxone | Type | Unité | Description |
+|---|---|---|---|
+| `OT_<user>_steps` | Analogique | pas | Nombre de pas |
+| `OT_<user>_stepsDistance` | Analogique | mètres | Distance parcourue |
+| `OT_<user>_stepsFloorsUp` | Analogique | étages | Étages montés |
+| `OT_<user>_stepsFloorsDown` | Analogique | étages | Étages descendus |
+| `OT_<user>_stepsFrom` | Analogique | epoch | Début de la période mesurée |
+| `OT_<user>_stepsTo` | Analogique | epoch | Fin de la période mesurée |
+| `OT_<user>_stepsTst` | Analogique | epoch | Timestamp du rapport podomètre |
+
+---
+
+## 📱 Infos appareil — dump/status (8 entrées)
+
+| Nom entrée Loxone | Type | Unité | Description |
+|---|---|---|---|
+| `OT_<user>_deviceId` | Texte | — | DeviceID configuré dans l'app (ex: "kevin") |
+| `OT_<user>_deviceModel` | Texte | — | Modèle (ex: "iPhone") |
+| `OT_<user>_iOSVersion` | Texte | — | Version iOS (ex: "26.4") |
+| `OT_<user>_appVersion` | Texte | — | Version OwnTracks (ex: "26.1.1") |
+| `OT_<user>_locale` | Texte | — | Locale (ex: "fr_FR") |
+| `OT_<user>_gpsAuthorized` | Analogique | 0/1 | 1 = GPS autorisé en permanence |
+| `OT_<user>_backgroundRefresh` | Analogique | 0/1 | 1 = actualisation arrière-plan active |
+| `OT_<user>_extendedData` | Analogique | 0/1 | 1 = Extended Data activé dans l'app |
+| `OT_<user>_cmdEnabled` | Analogique | 0/1 | 1 = commandes activées dans l'app |
+| `OT_<user>_waypointsCount` | Analogique | entier | Nombre de zones configurées sur le téléphone |
+
+---
+
+## 🗺️ Dernier waypoint reçu (6 entrées)
+
+| Nom entrée Loxone | Type | Unité | Description |
+|---|---|---|---|
+| `OT_<user>_lastWaypointDesc` | Texte | — | Nom de la zone créée/modifiée |
+| `OT_<user>_lastWaypointLat` | Analogique | degrés | Latitude |
+| `OT_<user>_lastWaypointLon` | Analogique | degrés | Longitude |
+| `OT_<user>_lastWaypointRad` | Analogique | mètres | Rayon |
+| `OT_<user>_lastWaypointRid` | Texte | — | ID interne de la zone |
+| `OT_<user>_lastWaypointTst` | Analogique | epoch | Timestamp de création/modification |
+
+---
+
+## 📡 Connexion LWT (2 entrées)
+
+| Nom entrée Loxone | Type | Unité | Description |
+|---|---|---|---|
+| `OT_<user>_lastSeen` | Analogique | epoch | Timestamp du dernier contact MQTT |
+| `OT_<user>_lastSeenElapsed` | Analogique | secondes | Secondes écoulées depuis le dernier contact |
+
+---
+
+## 📋 Liste complète à copier/coller — pour kevin
 
 ```
-OT_Kevin_latitude
-OT_Kevin_longitude
-OT_Kevin_accuracy
-OT_Kevin_altitude
-OT_Kevin_verticalAccuracy
-OT_Kevin_velocity
-OT_Kevin_course
-OT_Kevin_pressure
-OT_Kevin_battery
-OT_Kevin_batteryStatus
-OT_Kevin_timestamp
-OT_Kevin_created_at
-OT_Kevin_datetime
-OT_Kevin_connection
-OT_Kevin_connectionInt
-OT_Kevin_ssid
-OT_Kevin_bssid
-OT_Kevin_inregions
-OT_Kevin_inrids
-OT_Kevin_isHome
-OT_Kevin_regionRadius
-OT_Kevin_motionactivities
-OT_Kevin_monitoringMode
-OT_Kevin_trigger
-OT_Kevin_poi
-OT_Kevin_tag
-OT_Kevin_trackerID
-OT_Kevin_topic
-OT_Kevin_lastTransitionEvent
-OT_Kevin_lastTransitionEventInt
-OT_Kevin_lastTransitionRegion
-OT_Kevin_lastTransitionRegionId
-OT_Kevin_lastTransitionLat
-OT_Kevin_lastTransitionLon
-OT_Kevin_lastTransitionAcc
-OT_Kevin_lastTransitionTst
-OT_Kevin_lastTransitionTrigger
-OT_Kevin_steps
-OT_Kevin_stepsFrom
-OT_Kevin_stepsTo
-OT_Kevin_lastSeen
-OT_Kevin_lastSeenElapsed
+OT_kevin_latitude
+OT_kevin_longitude
+OT_kevin_accuracy
+OT_kevin_altitude
+OT_kevin_verticalAccuracy
+OT_kevin_velocity
+OT_kevin_course
+OT_kevin_pressure
+OT_kevin_battery
+OT_kevin_batteryStatus
+OT_kevin_timestamp
+OT_kevin_datetime
+OT_kevin_connection
+OT_kevin_connectionInt
+OT_kevin_ssid
+OT_kevin_bssid
+OT_kevin_inregions
+OT_kevin_inregionsCount
+OT_kevin_isHome
+OT_kevin_isWork
+OT_kevin_currentZone
+OT_kevin_inrids
+OT_kevin_motionactivities
+OT_kevin_monitoringMode
+OT_kevin_trigger
+OT_kevin_tag
+OT_kevin_trackerID
+OT_kevin_topic
+OT_kevin_lastTransitionEvent
+OT_kevin_lastTransitionEventInt
+OT_kevin_lastTransitionRegion
+OT_kevin_lastTransitionRegionId
+OT_kevin_lastTransitionLat
+OT_kevin_lastTransitionLon
+OT_kevin_lastTransitionTst
+OT_kevin_steps
+OT_kevin_stepsDistance
+OT_kevin_stepsFloorsUp
+OT_kevin_stepsFloorsDown
+OT_kevin_stepsFrom
+OT_kevin_stepsTo
+OT_kevin_stepsTst
+OT_kevin_deviceId
+OT_kevin_deviceModel
+OT_kevin_iOSVersion
+OT_kevin_appVersion
+OT_kevin_locale
+OT_kevin_gpsAuthorized
+OT_kevin_backgroundRefresh
+OT_kevin_extendedData
+OT_kevin_cmdEnabled
+OT_kevin_waypointsCount
+OT_kevin_lastWaypointDesc
+OT_kevin_lastWaypointLat
+OT_kevin_lastWaypointLon
+OT_kevin_lastWaypointRad
+OT_kevin_lastWaypointRid
+OT_kevin_lastWaypointTst
+OT_kevin_lastSeen
+OT_kevin_lastSeenElapsed
 ```
 
-### Pour David (identique, préfixe OT_David_)
-
-```
-OT_David_latitude
-OT_David_longitude
-OT_David_accuracy
-OT_David_altitude
-OT_David_verticalAccuracy
-OT_David_velocity
-OT_David_course
-OT_David_pressure
-OT_David_battery
-OT_David_batteryStatus
-OT_David_timestamp
-OT_David_created_at
-OT_David_datetime
-OT_David_connection
-OT_David_connectionInt
-OT_David_ssid
-OT_David_bssid
-OT_David_inregions
-OT_David_inrids
-OT_David_isHome
-OT_David_regionRadius
-OT_David_motionactivities
-OT_David_monitoringMode
-OT_David_trigger
-OT_David_poi
-OT_David_tag
-OT_David_trackerID
-OT_David_topic
-OT_David_lastTransitionEvent
-OT_David_lastTransitionEventInt
-OT_David_lastTransitionRegion
-OT_David_lastTransitionRegionId
-OT_David_lastTransitionLat
-OT_David_lastTransitionLon
-OT_David_lastTransitionAcc
-OT_David_lastTransitionTst
-OT_David_lastTransitionTrigger
-OT_David_steps
-OT_David_stepsFrom
-OT_David_stepsTo
-OT_David_lastSeen
-OT_David_lastSeenElapsed
-```
-
-### Pour Carole (identique, préfixe OT_Carole_)
-
-```
-OT_Carole_latitude
-OT_Carole_longitude
-OT_Carole_accuracy
-OT_Carole_altitude
-OT_Carole_verticalAccuracy
-OT_Carole_velocity
-OT_Carole_course
-OT_Carole_pressure
-OT_Carole_battery
-OT_Carole_batteryStatus
-OT_Carole_timestamp
-OT_Carole_created_at
-OT_Carole_datetime
-OT_Carole_connection
-OT_Carole_connectionInt
-OT_Carole_ssid
-OT_Carole_bssid
-OT_Carole_inregions
-OT_Carole_inrids
-OT_Carole_isHome
-OT_Carole_regionRadius
-OT_Carole_motionactivities
-OT_Carole_monitoringMode
-OT_Carole_trigger
-OT_Carole_poi
-OT_Carole_tag
-OT_Carole_trackerID
-OT_Carole_topic
-OT_Carole_lastTransitionEvent
-OT_Carole_lastTransitionEventInt
-OT_Carole_lastTransitionRegion
-OT_Carole_lastTransitionRegionId
-OT_Carole_lastTransitionLat
-OT_Carole_lastTransitionLon
-OT_Carole_lastTransitionAcc
-OT_Carole_lastTransitionTst
-OT_Carole_lastTransitionTrigger
-OT_Carole_steps
-OT_Carole_stepsFrom
-OT_Carole_stepsTo
-OT_Carole_lastSeen
-OT_Carole_lastSeenElapsed
-```
-
-> ✅ Pour un futur utilisateur : dupliquer la liste en remplaçant le prénom.
-> Le script l'alimentera automatiquement dès la première connexion.
+> ✅ Pour un autre utilisateur : remplacer `kevin` par son DeviceID (ex: `carole`, `david`).
+> Le script alimente automatiquement ces entrées dès la première connexion du téléphone.
 
 ---
 
 ## Notes importantes
 
-### Activer les données étendues (extendedData)
-Les champs suivants nécessitent `extendedData = true` dans l'app OwnTracks :
-- `pressure` (pression barométrique)
-- `connection` (type de connexion WiFi/mobile)
+### Activer Extended Data
+Requis pour : `pressure`, `connection`, `ssid`, `bssid`
+> iPhone OwnTracks → **Settings → Advanced → Extended Data → ON**
 
-Dans l'app OwnTracks iOS :
-> **Settings → Advanced → Extended Data → ON**
+### Activer les commandes (cmd)
+Requis pour recevoir les commandes depuis ioBroker
+> iPhone OwnTracks → **Settings → Advanced → cmd → ON**
 
 ### Activer le podomètre
-Le champ `steps` nécessite l'autorisation CoreMotion sur l'iPhone :
+Requis pour : `steps`, `stepsDistance`, `stepsFloorsUp`, `stepsFloorsDown`
 > **Réglages iPhone → OwnTracks → Mouvement et fitness → Autoriser**
+
+### Transitions entrée/sortie
+Requis pour `lastTransitionEvent*` : créer au moins une zone dans l'onglet **Régions** de l'app OwnTracks.

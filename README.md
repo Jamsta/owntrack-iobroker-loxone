@@ -11,21 +11,21 @@ pousse automatiquement vers le **Loxone Miniserver** via ses entrées virtuelles
 ```
 📱 Téléphone (OwnTracks App iOS)
         │
-        │  MQTT (port 1884)
+        │  MQTT (port 1884) — broker mqtt.0
         ▼
-🖥️  ioBroker — broker mqtt.0 + adaptateur owntracks.0
+🖥️  ioBroker — adaptateur mqtt.0 (JSON brut complet)
         │
-        │  owntracks.0.users.<NOM>.*  (44 variables par utilisateur)
+        │  mqtt.0.owntracks.owntracks.<user>  (tous les champs iOS)
         ▼
-📜 Script : owntracks_to_loxone.js  (v4.0)
+📜 Script : owntracks_to_loxone.js  (v5.4)
         │
         │  HTTP GET → Virtual Input
         ▼
 🏠 Loxone Miniserver
         │
-        │  (optionnel) setState → ioBroker
+        │  (optionnel) commandes retour
         ▼
-🎮 Commandes → Téléphone (reportLocation, setWaypoints, setConfiguration...)
+🎮 ioBroker → mqtt.0 → Téléphone (reportLocation, setWaypoints, setConfiguration...)
 ```
 
 ---
@@ -33,11 +33,11 @@ pousse automatiquement vers le **Loxone Miniserver** via ses entrées virtuelles
 ## Philosophie
 
 - **Zéro logique métier** : le script pousse les données brutes telles quelles — c'est Loxone qui décide quoi en faire
-- **Détection automatique des utilisateurs** : tout nouveau téléphone qui se connecte est détecté immédiatement, sans aucune configuration manuelle
-- **Détection automatique du DeviceID** : extrait depuis le champ `topic` ioBroker — `DEVICES` dans `config.js` n'est plus obligatoire
-- **Commandes bidirectionnelles** : ioBroker/Loxone peut envoyer des commandes vers les téléphones (forcer GPS, envoyer des zones, changer la config…)
-- **Séparation public/privé** : `config.js` (IPs, mots de passe) reste local et hors GitHub — `config.example.js` est partageable librement
-- **Code commenté et balisé** : chaque champ est documenté, facile à modifier sans tout comprendre
+- **Toutes les données iOS** : lecture depuis `mqtt.0` (JSON brut) — 40+ champs disponibles vs 6 avec `owntracks.0` seul
+- **Détection automatique des utilisateurs** : tout nouveau téléphone qui se connecte est détecté immédiatement, sans configuration manuelle
+- **Commandes bidirectionnelles** : ioBroker/Loxone peut envoyer des commandes vers les téléphones
+- **Séparation public/privé** : `config.js` (IPs, mots de passe) reste local — jamais sur GitHub
+- **Build simple** : `node build.js` fusionne `config.js` + script → fichier prêt pour ioBroker
 
 ---
 
@@ -46,15 +46,14 @@ pousse automatiquement vers le **Loxone Miniserver** via ses entrées virtuelles
 ```
 owntrack-iobroker-loxone/
 ├── README.md                              ← Ce fichier
-├── config.example.js                      ← ✅ Modèle public à partager avec des collègues
-├── config.js                              ← ⚠️  Config privée (dans .gitignore — JAMAIS sur GitHub)
-├── .gitignore                             ← Protège config.js
+├── config.js                              ← ✅ Modèle public — copier et remplir tes valeurs
+├── .gitignore                             ← Protège ton config.js local (avec tes vraies données)
+├── build.js                               ← Génère deploy/owntracks_complet.js
 ├── scripts/
-│   └── owntracks_to_loxone.js            ← Script principal ioBroker (v4.0)
+│   └── owntracks_to_loxone.js            ← Script principal ioBroker (v5.4)
 ├── loxone/
-│   └── virtual_inputs.md                 ← Liste complète des entrées virtuelles Loxone
+│   └── virtual_inputs.md                 ← Liste complète des entrées virtuelles Loxone (~40 par user)
 └── owntracks/
-    ├── owntracks_ios_guide_complet.md    ← Guide complet paramétrage iOS OwnTracks
     └── commands.md                        ← Documentation commandes bidirectionnelles
 ```
 
@@ -63,18 +62,20 @@ owntrack-iobroker-loxone/
 ## Prérequis
 
 ### ioBroker
-- Adaptateur **OwnTracks** (`owntracks.0`) installé et actif — port **1884**
 - Adaptateur **MQTT** (`mqtt.0`) installé et actif — port **1884**
 - Adaptateur **JavaScript** installé (pour exécuter le script)
+- Adaptateur **OwnTracks** (`owntracks.0`) — optionnel, non utilisé par le script v5.x
 
 ### Application OwnTracks (iPhone)
 - Mode de connexion : **MQTT Private**
-- Host : IP de ton serveur ioBroker (voir `config.js → IOBROKER_IP`)
+- Host : IP de ton serveur ioBroker
 - Port : **1884** (broker `mqtt.0`)
-- DeviceID : prénom de la personne (ex : `Kevin`, `David`, `Carole`)
-- **Extended Data : ON** — indispensable pour recevoir WiFi, pression barométrique, type de connexion
-- Autorisation **Localisation → Toujours** obligatoire pour le tracking en arrière-plan
-- Autorisation **Mouvement & Fitness** pour le podomètre (`steps`)
+- UserID : `owntracks` (pour l'authentification MQTT)
+- DeviceID : prénom en minuscules (`kevin`, `carole`...)
+- **Extended Data : ON** — indispensable pour WiFi, pression, type de connexion
+- **cmd : ON** — pour recevoir les commandes
+- Autorisation **Localisation → Toujours** obligatoire
+- Autorisation **Mouvement & Fitness** pour le podomètre
 
 ### Loxone
 - Miniserver accessible en HTTP sur le réseau local
@@ -84,239 +85,288 @@ owntrack-iobroker-loxone/
 
 ## Installation
 
-### 1. Créer ta configuration
+### 1. Cloner le dépôt
 
-Copier `config.example.js` → `config.js` et renseigner tes valeurs :
+```bash
+git clone https://github.com/Jamsta/owntrack-iobroker-loxone.git
+cd owntrack-iobroker-loxone
+```
+
+### 2. Créer ta configuration locale
+
+Copier `config.js` → dans un dossier local hors GitHub et renseigner tes valeurs réelles :
 
 ```javascript
 const CONFIG = {
-    LOXONE_IP   : "192.168.x.x",   // ← IP de ton Loxone Miniserver
+    LOXONE_IP   : "192.168.x.x",     // ← IP de ton Loxone Miniserver
     LOXONE_PORT : 80,
-    LOXONE_USER : "admin",          // ← Utilisateur Loxone Config
-    LOXONE_PASS : "motdepasse",     // ← Mot de passe Loxone
+    LOXONE_USER : "admin",            // ← Utilisateur Loxone Config
+    LOXONE_PASS : "motdepasse",       // ← Mot de passe Loxone
 
-    IOBROKER_IP      : "192.168.x.x",  // ← IP de ton serveur ioBroker
-    MQTT_BROKER_IP   : "192.168.x.x",  // ← souvent la même IP qu'ioBroker
+    IOBROKER_IP      : "192.168.x.x",
+    MQTT_BROKER_IP   : "192.168.x.x",
     MQTT_BROKER_PORT : 1884,
+    OWNTRACKS_USER   : "owntracks",   // UserID MQTT dans l'app OwnTracks
+    OWNTRACKS_PASS   : "motdepasse",
+    MQTT_USER        : "owntracks",
+    MQTT_PASS        : "motdepasse",
 
-    OWNTRACKS_INSTANCE : "owntracks.0",
-    OWNTRACKS_PASS     : "motdepasse",  // ← Mot de passe MQTT OwnTracks
+    USERS : ["kevin", "carole"],      // ← DeviceID en minuscules
+    DEVICES : {
+        "kevin"  : "kevin",           // DeviceID dans l'app OwnTracks
+        "carole" : "carole",
+    },
+    ZONES : {
+        HOME : "Maison",              // ← Nom exact de ta zone HOME dans OwnTracks
+        // WORK : "Bureau",           // ← Décommenter si besoin
+    },
 
-    USERS : ["Kevin", "David", "Carole"],  // ← Prénoms des utilisateurs (DeviceID dans l'app)
-    ZONES : { HOME: "Maison" },            // ← Nom exact de ta zone maison dans OwnTracks
-
-    COMMANDS_ENABLED : true,
-    ENCRYPTION_ENABLED : false,
-
+    COMMANDS_ENABLED    : true,
+    ENCRYPTION_ENABLED  : false,
     POLLING_INTERVAL_MS : 30000,
-    DEBUG : true,
+    DEBUG               : true,
 };
 ```
 
-> ⚠️ `config.js` est dans `.gitignore` — il ne sera **jamais** publié sur GitHub.
-> Partager `config.example.js` avec tes collègues à la place.
+> ⚠️ Ton `config.js` local (avec tes vraies valeurs) doit être ajouté dans `.gitignore`
+> pour ne **jamais** être publié sur GitHub.
 
-### 2. Créer les entrées virtuelles dans Loxone Config
+### 3. Générer le script ioBroker
 
-Se référer à `loxone/virtual_inputs.md` pour la liste complète des 44 entrées par utilisateur.
+Installer Node.js puis lancer :
 
-Format : `OT_<NomUtilisateur>_<champ>`  — exemples :
-- `OT_Kevin_latitude` / `OT_Kevin_isHome` / `OT_Kevin_battery`
-- `OT_David_velocity` / `OT_David_lastTransitionEvent`
-- `OT_Carole_ssid` / `OT_Carole_steps`
+```bash
+node build.js
+```
 
-### 3. Importer le script dans ioBroker
+→ Génère `deploy/owntracks_complet.js` (config + script fusionnés, prêt à coller dans ioBroker)
 
-1. Ouvrir l'interface **ioBroker Admin**
-2. Aller dans **Scripts** → adaptateur JavaScript
-3. Créer un nouveau script de type **JavaScript**
-4. Coller **d'abord** le contenu de `config.js`, **puis** le contenu de `scripts/owntracks_to_loxone.js`
-5. **Sauvegarder** et **Démarrer** le script
+### 4. Importer dans ioBroker
+
+1. Ouvrir **ioBroker Admin** → **Scripts**
+2. Créer un nouveau script **JavaScript**
+3. Coller le contenu de `deploy/owntracks_complet.js`
+4. **Sauvegarder** et **Démarrer**
+
+### 5. Créer les entrées virtuelles dans Loxone Config
+
+Voir `loxone/virtual_inputs.md` — format : `OT_<user>_<champ>`
+
+Exemples : `OT_kevin_latitude`, `OT_kevin_isHome`, `OT_kevin_battery`
 
 ---
 
-## Détection automatique
+## Workflow — mise à jour
 
-### Utilisateurs
-Dès qu'un téléphone envoie sa première position, le script crée automatiquement
-sa surveillance et pousse ses données vers Loxone — sans aucune configuration.
+```bash
+# 1. Récupérer les dernières mises à jour du script
+git pull
 
-### DeviceID (nouveau — v4.0)
-Le script extrait le DeviceID directement depuis le champ `owntracks.0.users.<NOM>.topic` :
+# 2. Régénérer le fichier ioBroker avec ta config locale
+node build.js
 
+# 3. Dans ioBroker : Ctrl+A → Supprimer → Coller deploy/owntracks_complet.js → Save → Restart
 ```
-topic = "owntracks/Kevin/iPhone"  →  DeviceID détecté = "iPhone"  ✅
+
+> ✅ `config.js` (avec tes données) ne change pas lors d'un `git pull` — il est ignoré par git.
+
+---
+
+## Détection automatique des utilisateurs
+
+### Au démarrage
+Les utilisateurs listés dans `CONFIG.USERS` sont initialisés immédiatement.
+
+### Nouveau téléphone
+Dès qu'un nouveau téléphone publie sur MQTT, il est détecté automatiquement et ajouté sans redémarrage.
+
+### Tous les sous-topics sont surveillés (v5.3+)
+```
+mqtt.0.owntracks.owntracks.kevin           ← _type=location  (GPS, batterie, zones...)
+mqtt.0.owntracks.owntracks.kevin.dump      ← _type=dump      (config complète de l'app)
+mqtt.0.owntracks.owntracks.kevin.status    ← _type=status    (infos iOS, autorisations)
+mqtt.0.owntracks.owntracks.kevin.step      ← _type=steps     (podomètre)
+mqtt.0.owntracks.owntracks.kevin.waypoint  ← _type=waypoint  (zones créées/modifiées)
 ```
 
-**Ordre de priorité pour les commandes :**
+---
 
-| Priorité | Source | Quand actif |
+## Données disponibles par utilisateur (~40 variables)
+
+### 📍 Position GPS
+| Variable Loxone | Description | Type |
 |---|---|---|
-| 1 | Auto-détection depuis `topic` ioBroker | Dès la 1ère position reçue ✅ |
-| 2 | `CONFIG.DEVICES[userName]` dans config.js | Fallback avant 1ère connexion |
-| 3 | `"iPhone"` | Fallback ultime |
+| `OT_<user>_latitude` | Latitude GPS | float |
+| `OT_<user>_longitude` | Longitude GPS | float |
+| `OT_<user>_accuracy` | Précision horizontale (mètres) | int |
+| `OT_<user>_altitude` | Altitude (mètres) | int |
+| `OT_<user>_verticalAccuracy` | Précision verticale (mètres) | int |
+| `OT_<user>_velocity` | Vitesse (km/h) | int |
+| `OT_<user>_course` | Cap / direction (0-360°) | int |
+| `OT_<user>_pressure` | Pression barométrique (kPa) | float |
 
-> `DEVICES` dans `config.js` n'est **plus obligatoire** — simple filet de secours.
+### 🔋 Batterie
+| Variable Loxone | Description | Type |
+|---|---|---|
+| `OT_<user>_battery` | Niveau batterie (%) | int |
+| `OT_<user>_batteryStatus` | 0=inconnu / 1=débranché / 2=charge / 3=plein | int |
 
----
+### ⏱️ Horodatage
+| Variable Loxone | Description | Type |
+|---|---|---|
+| `OT_<user>_timestamp` | Timestamp UNIX du fix GPS | int |
+| `OT_<user>_datetime` | Date/heure lisible (fr-FR) | string |
 
-## Données disponibles par utilisateur (44 variables)
+### 📶 Connectivité
+| Variable Loxone | Description | Type |
+|---|---|---|
+| `OT_<user>_connection` | "w"=WiFi / "m"=mobile / "o"=offline | string |
+| `OT_<user>_connectionInt` | 0=offline / 1=mobile / 2=WiFi | int |
+| `OT_<user>_ssid` | Nom réseau WiFi | string |
+| `OT_<user>_bssid` | MAC du point d'accès WiFi | string |
 
-| Variable Loxone                      | Description                                       | Type   |
-|--------------------------------------|---------------------------------------------------|--------|
-| `OT_<USER>_latitude`                 | Latitude GPS                                      | float  |
-| `OT_<USER>_longitude`                | Longitude GPS                                     | float  |
-| `OT_<USER>_accuracy`                 | Précision horizontale GPS (mètres)                | int    |
-| `OT_<USER>_altitude`                 | Altitude (mètres)                                 | int    |
-| `OT_<USER>_verticalAccuracy`         | Précision verticale altitude (mètres) — iOS       | int    |
-| `OT_<USER>_velocity`                 | Vitesse de déplacement (km/h)                     | int    |
-| `OT_<USER>_course`                   | Cap / direction (degrés 0-360°) — iOS             | int    |
-| `OT_<USER>_pressure`                 | Pression barométrique (kPa) — iOS + extendedData  | float  |
-| `OT_<USER>_battery`                  | Batterie téléphone (%)                            | int    |
-| `OT_<USER>_batteryStatus`            | État batterie (0=inconnu / 1=débranché / 2=charge / 3=plein) | int |
-| `OT_<USER>_timestamp`                | Timestamp UNIX du fix GPS                         | int    |
-| `OT_<USER>_created_at`               | Timestamp construction du message — iOS           | int    |
-| `OT_<USER>_datetime`                 | Date/heure lisible (ISO string)                   | string |
-| `OT_<USER>_connection`               | Type connexion : `w`=WiFi / `m`=mobile / `o`=offline — extendedData | string |
-| `OT_<USER>_connectionInt`            | Connexion numérique : 0=offline / 1=mobile / 2=WiFi | int  |
-| `OT_<USER>_ssid`                     | Nom du réseau WiFi — iOS + extendedData           | string |
-| `OT_<USER>_bssid`                    | MAC du point d'accès WiFi — iOS + extendedData    | string |
-| `OT_<USER>_inregions`                | Zones actuelles (JSON array) ex: `["Maison"]`     | string |
-| `OT_<USER>_inrids`                   | IDs des zones actuelles — iOS                     | string |
-| `OT_<USER>_isHome`                   | Présence dans la zone HOME : 1=oui / 0=non        | int    |
-| `OT_<USER>_regionRadius`             | Rayon de la zone enter/leave (mètres) — iOS       | int    |
-| `OT_<USER>_motionactivities`         | Activité : stationary / walking / running / automotive / cycling | string |
-| `OT_<USER>_monitoringMode`           | Mode GPS : 1=significant (éco) / 2=move (précis) — iOS | int |
-| `OT_<USER>_trigger`                  | Déclencheur : p=ping / c=zone / b=beacon / r=cmd / u=manuel / t=timer | string |
-| `OT_<USER>_poi`                      | Nom du point d'intérêt — iOS                      | string |
-| `OT_<USER>_tag`                      | Tag associé à la position — iOS                   | string |
-| `OT_<USER>_trackerID`                | Initiales affichées sur la carte (2 car. max)     | string |
-| `OT_<USER>_topic`                    | Topic MQTT source (contient le DeviceID)          | string |
-| `OT_<USER>_lastTransitionEvent`      | Dernier événement zone : `enter` ou `leave`       | string |
-| `OT_<USER>_lastTransitionEventInt`   | Événement numérique : 1=enter / 0=leave           | int    |
-| `OT_<USER>_lastTransitionRegion`     | Nom de la zone concernée par la transition        | string |
-| `OT_<USER>_lastTransitionRegionId`   | ID de la zone transition — iOS                    | string |
-| `OT_<USER>_lastTransitionLat`        | Latitude de l'événement de transition             | float  |
-| `OT_<USER>_lastTransitionLon`        | Longitude de l'événement de transition            | float  |
-| `OT_<USER>_lastTransitionAcc`        | Précision GPS à l'événement (mètres)              | int    |
-| `OT_<USER>_lastTransitionTst`        | Timestamp de la dernière transition               | int    |
-| `OT_<USER>_lastTransitionTrigger`    | Déclencheur transition : `c`=zone / `b`=beacon    | string |
-| `OT_<USER>_steps`                    | Nombre de pas — podomètre iOS (-1 si non supporté)| int    |
-| `OT_<USER>_stepsFrom`                | Début de la période podomètre (epoch)             | int    |
-| `OT_<USER>_stepsTo`                  | Fin de la période podomètre (epoch)               | int    |
-| `OT_<USER>_lastSeen`                 | Dernier contact MQTT connu (epoch)                | int    |
-| `OT_<USER>_lastSeenElapsed`          | Secondes écoulées depuis le dernier contact       | int    |
+### 📍 Zones géographiques
+| Variable Loxone | Description | Type |
+|---|---|---|
+| `OT_<user>_inregions` | Zones actuelles JSON ex: `["Maison"]` | string |
+| `OT_<user>_inregionsCount` | Nombre de zones actives | int |
+| `OT_<user>_isHome` | 1 = dans la zone HOME | int |
+| `OT_<user>_isWork` | 1 = dans la zone WORK (si CONFIG.ZONES.WORK défini) | int |
+| `OT_<user>_currentZone` | Nom de la zone principale actuelle | string |
+| `OT_<user>_inrids` | IDs des zones actives | string |
 
-> 📄 Liste complète avec instructions de création dans `loxone/virtual_inputs.md`
+### 🚶 Activité
+| Variable Loxone | Description | Type |
+|---|---|---|
+| `OT_<user>_motionactivities` | stationary/walking/running/automotive/cycling | string |
+| `OT_<user>_monitoringMode` | 1=significant (éco) / 2=move (précis) | int |
+| `OT_<user>_trigger` | p=ping / c=zone / r=cmd / u=manuel / t=timer | string |
+| `OT_<user>_tag` | Tag de la zone actuelle | string |
+| `OT_<user>_trackerID` | Initiales (2 caractères) | string |
+
+### 👣 Podomètre
+| Variable Loxone | Description | Type |
+|---|---|---|
+| `OT_<user>_steps` | Nombre de pas | int |
+| `OT_<user>_stepsDistance` | Distance parcourue (mètres) | float |
+| `OT_<user>_stepsFloorsUp` | Étages montés | int |
+| `OT_<user>_stepsFloorsDown` | Étages descendus | int |
+| `OT_<user>_stepsFrom` | Début période (epoch) | int |
+| `OT_<user>_stepsTo` | Fin période (epoch) | int |
+
+### 🔔 Transitions (entrée/sortie zones)
+| Variable Loxone | Description | Type |
+|---|---|---|
+| `OT_<user>_lastTransitionEvent` | "enter" ou "leave" | string |
+| `OT_<user>_lastTransitionEventInt` | 1=enter / 0=leave | int |
+| `OT_<user>_lastTransitionRegion` | Nom de la zone | string |
+| `OT_<user>_lastTransitionLat` | Latitude de l'événement | float |
+| `OT_<user>_lastTransitionLon` | Longitude de l'événement | float |
+
+### 📱 Infos appareil (depuis dump/status)
+| Variable Loxone | Description | Type |
+|---|---|---|
+| `OT_<user>_deviceModel` | "iPhone" | string |
+| `OT_<user>_iOSVersion` | Version iOS | string |
+| `OT_<user>_appVersion` | Version OwnTracks | string |
+| `OT_<user>_gpsAuthorized` | 1 = GPS toujours autorisé | int |
+| `OT_<user>_backgroundRefresh` | 1 = actualisation arrière-plan OK | int |
+| `OT_<user>_deviceId` | DeviceID configuré dans l'app | string |
+| `OT_<user>_extendedData` | 1 = Extended Data activé | int |
+| `OT_<user>_waypointsCount` | Nombre de zones sur le téléphone | int |
+
+### 🗺️ Dernier waypoint reçu
+| Variable Loxone | Description | Type |
+|---|---|---|
+| `OT_<user>_lastWaypointDesc` | Nom de la zone créée/modifiée | string |
+| `OT_<user>_lastWaypointLat` | Latitude | float |
+| `OT_<user>_lastWaypointLon` | Longitude | float |
+| `OT_<user>_lastWaypointRad` | Rayon (mètres) | int |
+
+### 📡 Connexion LWT
+| Variable Loxone | Description | Type |
+|---|---|---|
+| `OT_<user>_lastSeen` | Dernier contact (epoch) | int |
+| `OT_<user>_lastSeenElapsed` | Secondes depuis dernier contact | int |
 
 ---
 
 ## Commandes bidirectionnelles (ioBroker → Téléphone)
 
-Le script crée automatiquement des **états-boutons** dans ioBroker pour chaque utilisateur
-listé dans `config.js → USERS`. Mettre la valeur à `1` déclenche la commande (remise à `0` automatiquement).
+États créés automatiquement dans `javascript.0` — mettre à `1` déclenche la commande :
 
-| État ioBroker (`javascript.0.*`)       | Effet                              |
-|----------------------------------------|------------------------------------|
-| `OT_CMD_reportLocation_<USER>`         | Force un fix GPS immédiat          |
-| `OT_CMD_reportSteps_<USER>`            | Demande le podomètre               |
-| `OT_CMD_restart_<USER>`               | Redémarre l'app OwnTracks          |
-| `OT_CMD_dump_<USER>`                  | Rapport complet d'état             |
+| État ioBroker | Effet |
+|---|---|
+| `OT_CMD_reportLocation_<user>` | Force un fix GPS immédiat |
+| `OT_CMD_reportSteps_<user>` | Demande le podomètre |
+| `OT_CMD_restart_<user>` | Redémarre l'app OwnTracks |
+| `OT_CMD_dump_<user>` | Rapport complet d'état |
 
-Ou directement depuis un script ioBroker :
+Ou depuis un script ioBroker :
 ```javascript
-cmdReportLocation("Kevin");
-cmdReportSteps("Kevin");
-cmdRestart("Kevin");
-cmdDump("Kevin");
-cmdSetWaypoints("Kevin", [{ _type:"waypoint", desc:"Maison", lat:48.85, lon:2.35, rad:100, tst:Math.floor(Date.now()/1000) }]);
-cmdSetConfiguration("Kevin", { monitoring: 1 }); // passer en mode économie batterie
+cmdReportLocation("kevin");
+cmdReportSteps("kevin");
+cmdDump("kevin");
+cmdSetWaypoints("kevin", [{ _type:"waypoint", desc:"Maison", lat:44.7, lon:-0.8, rad:100, tst:Math.floor(Date.now()/1000) }]);
+cmdSetConfiguration("kevin", { monitoring: 1 }); // mode économie batterie
 ```
 
 > 📖 Documentation complète dans `owntracks/commands.md`
 
 ---
 
-## Zones géographiques (Waypoints)
+## Zones géographiques
 
-> ⚠️ **Les zones ne sont PAS créées automatiquement par ce script.**
+Les zones se créent **directement dans l'app OwnTracks** sur chaque téléphone (onglet Régions → +),
+ou s'envoient à distance via `cmdSetWaypoints()`.
 
-Les zones sont définies **manuellement dans l'app OwnTracks** sur chaque téléphone,
-ou envoyées à distance via la commande `cmdSetWaypoints()`.
-
-Le script utilise uniquement le **nom** de la zone HOME (`config.js → ZONES.HOME`)
-pour calculer la variable `OT_<USER>_isHome` (0 ou 1).
-
-Envoyer les zones sur tous les téléphones à distance :
-```javascript
-var zones = [{
-    _type : "waypoint",
-    desc  : "Maison",
-    lat   : 48.8566,  // ← tes coordonnées réelles
-    lon   : 2.3522,
-    rad   : 100,
-    tst   : Math.floor(Date.now() / 1000)
-}];
-["Kevin", "David", "Carole"].forEach(function(u) { cmdSetWaypoints(u, zones); });
-```
+Le script calcule automatiquement :
+- `isHome` = 1 si le téléphone est dans la zone `CONFIG.ZONES.HOME`
+- `isWork` = 1 si le téléphone est dans la zone `CONFIG.ZONES.WORK`
+- `currentZone` = nom de la zone principale actuelle
 
 ---
 
-## Ajout d'un nouvel utilisateur
+## Sécurité — config.js
 
-**Aucune modification du script nécessaire pour recevoir ses données.**
+| Fichier | Sur GitHub | Contenu |
+|---|---|---|
+| `config.js` (ce repo) | ✅ Oui — **placeholders uniquement** | Modèle vide à copier |
+| `config.js` **local** (ton PC) | ❌ Non — dans `.gitignore` | Tes vraies IPs et mots de passe |
 
-1. Configurer OwnTracks sur le nouveau téléphone (même broker MQTT, DeviceID = prénom)
-2. Dès la 1ère position reçue → détection automatique, données poussées vers Loxone
-3. Créer les 44 entrées virtuelles dans Loxone Config (`OT_<Prenom>_*`)
-
-> 💡 Pour les **commandes** vers ce nouvel utilisateur, ajouter son prénom dans
-> `config.js → USERS` (et optionnellement `DEVICES` comme fallback).
+**Workflow sécurisé :**
+1. Clone le repo → `config.js` contient des placeholders
+2. Remplis les valeurs dans ton `config.js` local
+3. `git pull` met à jour le script → ton `config.js` n'est pas touché (ignoré par git)
+4. `node build.js` fusionne les deux → `deploy/owntracks_complet.js`
 
 ---
 
 ## Chiffrement (optionnel)
 
-OwnTracks supporte le chiffrement libsodium — clé symétrique max 32 caractères.
+OwnTracks supporte le chiffrement libsodium (clé symétrique max 32 caractères).
 
-1. ioBroker → `owntracks.0` → Config → **Encryption key** → saisir ta clé
+1. `config.js` → `ENCRYPTION_ENABLED: true` + `ENCRYPTION_KEY: "ta_clé"`
 2. iPhone → Settings → **Encryption** → même clé
-3. `config.js` → `ENCRYPTION_ENABLED: true` + `ENCRYPTION_KEY: "ta_clé"`
-
-> Le déchiffrement est géré par l'adaptateur `owntracks.0`. Le script reçoit toujours les données en clair.
-
----
-
-## Fichiers de configuration
-
-| Fichier | Visibilité | Rôle |
-|---|---|---|
-| `config.js` | ⚠️ **Privé** — dans `.gitignore` | Tes vraies valeurs : IPs, mots de passe, utilisateurs |
-| `config.example.js` | ✅ **Public** — sur GitHub | Modèle vide à copier et partager avec des collègues |
-
----
-
-## Documentation
-
-| Fichier | Contenu |
-|---|---|
-| `loxone/virtual_inputs.md` | Liste des 44 entrées virtuelles par utilisateur + instructions de création |
-| `owntracks/commands.md` | Toutes les commandes bidirectionnelles + exemples d'intégration Loxone |
-| `owntracks/owntracks_ios_guide_complet.md` | Guide complet paramétrage iOS : MQTT, mode expert, zones, chiffrement, remote config |
 
 ---
 
 ## Auteur
 
-**Kevin** — Installation domotique Loxone + ioBroker + OwnTracks
+Projet développé pour une installation domotique **Loxone + ioBroker + OwnTracks iOS**.
 
 ---
 
 ## Historique des versions
 
-| Version | Date       | Description                                                            |
-|---------|------------|------------------------------------------------------------------------|
-| 4.0.0   | 2026-04-22 | Détection automatique du DeviceID depuis le champ `topic` ioBroker    |
-| 3.0.0   | 2026-04-22 | Chiffrement libsodium + commandes bidirectionnelles                    |
-| 2.0.0   | 2026-04-22 | Couverture complète iOS (44 variables), config séparée public/privé    |
-| 1.0.0   | 2026-04-22 | Version initiale                                                       |
+| Version | Date | Description |
+|---|---|---|
+| **5.4.0** | 2026-04-23 | Filtrage nœuds réservés mqtt.0 — suppression faux utilisateur "owntracks" |
+| **5.3.0** | 2026-04-23 | Surveillance de tous les sous-topics mqtt.0 (dump/status/step/waypoint) |
+| **5.2.0** | 2026-04-23 | isWork, currentZone, inregionsCount |
+| **5.1.0** | 2026-04-23 | Gestion complète steps/waypoint/dump/status |
+| **5.0.0** | 2026-04-23 | Lecture JSON brut depuis mqtt.0 — tous les champs iOS (vs 6 avec owntracks.0) |
+| **4.x** | 2026-04-22 | Corrections topic MQTT commandes |
+| **3.0.0** | 2026-04-22 | Chiffrement libsodium + commandes bidirectionnelles |
+| **2.0.0** | 2026-04-22 | Couverture complète iOS, config séparée public/privé |
+| **1.0.0** | 2026-04-22 | Version initiale |
