@@ -34,7 +34,9 @@
  *
  *  CONFIGURATION
  *  -------------
- *  Modifier uniquement la section "⚙️ CONFIGURATION" ci-dessous
+ *  ⚠️  NE PAS MODIFIER CE FICHIER pour la config.
+ *  Toutes les valeurs sensibles sont dans : config.js
+ *  (IPs, mots de passe, utilisateurs...)
  *
  *  ENTRÉES VIRTUELLES LOXONE À CRÉER
  *  -----------------------------------
@@ -44,29 +46,39 @@
  */
 
 // ============================================================
-// ⚙️  CONFIGURATION — À MODIFIER SELON TON INSTALLATION
+// ⚙️  CONFIGURATION — CHARGÉE DEPUIS config.js
+// ============================================================
+//
+//  ⚠️  NE PAS METTRE DE MOTS DE PASSE OU D'IPs ICI !
+//  Toutes les valeurs sont dans config.js (non publié sur GitHub)
+//  Pour démarrer : copier config.example.js → config.js et remplir
+//
 // ============================================================
 
-const CONFIG = {
-
-    // --- Loxone Miniserver ---
-    LOXONE_IP   : "192.168.1.77",   // ← IP de ton Loxone Miniserver
-    LOXONE_PORT : 80,               // ← Port HTTP du Miniserver (80 par défaut)
-    LOXONE_USER : "admin",          // ← Utilisateur Loxone
-    LOXONE_PASS : "admin",          // ← Mot de passe Loxone
-
-    // --- ioBroker OwnTracks ---
-    OWNTRACKS_INSTANCE : "owntracks.0",   // ← Instance de l'adaptateur OwnTracks
-
-    // --- Intervalle de surveillance (ms) ---
-    // Le script surveille en temps réel via subscriptions,
-    // mais un polling de sécurité est aussi actif
-    POLLING_INTERVAL_MS : 30000,   // ← 30 secondes (fallback polling)
-
-    // --- Debug ---
-    DEBUG : true,   // ← true = logs détaillés dans la console ioBroker
-
-};
+// En environnement ioBroker JavaScript, le fichier config.js
+// doit être collé JUSTE AU-DESSUS de ce script dans l'éditeur,
+// ou chargé via readFile() si ioBroker le supporte.
+//
+// ── MÉTHODE RECOMMANDÉE ──────────────────────────────────────
+// Dans l'éditeur de scripts ioBroker, créer UN SEUL script
+// en collant d'abord le contenu de config.js, puis ce fichier.
+// ─────────────────────────────────────────────────────────────
+//
+// Valeurs par défaut (écrasées par config.js si présent)
+if (typeof CONFIG === 'undefined') {
+    // ⚠️  FALLBACK — Ne devrait pas arriver si config.js est bien chargé
+    // Modifier ici uniquement si tu n'utilises pas config.js
+    var CONFIG = {
+        LOXONE_IP           : "192.168.10.20",
+        LOXONE_PORT         : 80,
+        LOXONE_USER         : "admin",
+        LOXONE_PASS         : "VOIR_config.js",
+        OWNTRACKS_INSTANCE  : "owntracks.0",
+        ZONES               : { HOME: "Maison" },
+        POLLING_INTERVAL_MS : 30000,
+        DEBUG               : true,
+    };
+}
 
 // ============================================================
 // 📦  STRUCTURE DES DONNÉES OwnTracks (référence)
@@ -319,12 +331,10 @@ function watchUser(userName) {
         // -------------------------------------------------------
         // 💡 BALISE — Présence à la maison
         // -------------------------------------------------------
-        // Tu peux adapter "Maison" selon le nom exact de ta zone
-        // OwnTracks. Cette valeur booléenne (0/1) est pratique
-        // pour les automatismes Loxone.
-        //
-        // Pour modifier le nom de la zone : change "Maison" ci-dessous
-        var isHome = (regions && regions.indexOf("Maison") !== -1) ? 1 : 0;
+        // Le nom de la zone vient de config.js → ZONES.HOME
+        // Pour changer la zone : modifier config.js uniquement
+        var homeZoneName = (CONFIG.ZONES && CONFIG.ZONES.HOME) ? CONFIG.ZONES.HOME : "Maison";
+        var isHome = (regions && regions.indexOf(homeZoneName) !== -1) ? 1 : 0;
         sendToLoxone(loxoneName(userName, "isHome"), isHome);
         // -------------------------------------------------------
     });
@@ -391,7 +401,8 @@ function pushAllValues(userName) {
                     sendToLoxone(loxoneName(userName, "connectionInt"), connInt);
                 }
                 if (field === "regions") {
-                    var isHome = (state.val && state.val.indexOf("Maison") !== -1) ? 1 : 0;
+                    var homeZone = (CONFIG.ZONES && CONFIG.ZONES.HOME) ? CONFIG.ZONES.HOME : "Maison";
+                    var isHome = (state.val && state.val.indexOf(homeZone) !== -1) ? 1 : 0;
                     sendToLoxone(loxoneName(userName, "isHome"), isHome);
                 }
             }
