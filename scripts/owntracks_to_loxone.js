@@ -267,45 +267,48 @@ if (CONFIG.ENCRYPTION_ENABLED) {
 //
 // ============================================================
 
-// Table des DeviceIDs détectés automatiquement depuis le champ topic
-// Alimentée par watchUser() dès la première réception du champ topic
+// Topics de commande détectés automatiquement depuis owntracks.0.users.<NOM>.topic
+// Format stocké : "owntracks/owntracks/kevin" → topic cmd = "owntracks/owntracks/kevin/cmd"
 var detectedDevices = {};
 
 /**
- * Extrait et mémorise le DeviceID depuis owntracks.0.users.<NOM>.topic
+ * Extrait et mémorise le topic de base depuis owntracks.0.users.<NOM>.topic
  * Appelé automatiquement dans watchUser() à chaque mise à jour du topic
  *
- * topic format : "owntracks/<userName>/<deviceId>"
+ * topic format : "owntracks/<mqttUser>/<deviceId>"
+ * ex: "owntracks/owntracks/kevin" → cmdTopic = "owntracks/owntracks/kevin/cmd"
  *
  * @param {string} userName
- * @param {string} topicValue  - ex: "owntracks/Kevin/iPhone"
+ * @param {string} topicValue  - ex: "owntracks/owntracks/kevin"
  */
 function updateDeviceId(userName, topicValue) {
     if (!topicValue) return;
-    var parts    = topicValue.split("/");
-    // topic = owntracks / Kevin / iPhone  →  parts[2] = deviceId
-    var deviceId = (parts.length >= 3) ? parts[2] : null;
-    if (deviceId && detectedDevices[userName] !== deviceId) {
-        detectedDevices[userName] = deviceId;
-        log_debug("📱 DeviceID détecté automatiquement : " + userName + " → " + deviceId);
+    // On stocke le topic complet (sans /cmd) pour construire le topic de commande
+    if (detectedDevices[userName] !== topicValue) {
+        detectedDevices[userName] = topicValue;
+        log_debug("📱 Topic détecté automatiquement : " + userName + " → " + topicValue + "/cmd");
     }
 }
 
 /**
- * Résout le DeviceID d'un utilisateur
- * Priorité : auto-détecté > config.js DEVICES > fallback "iPhone"
+ * Résout le topic de commande d'un utilisateur
+ * Priorité : auto-détecté (depuis topic ioBroker) > fallback config.js DEVICES
  *
  * @param {string} userName
- * @returns {string}
+ * @returns {string}  topic complet ex: "owntracks/owntracks/kevin"
  */
 function resolveDeviceId(userName) {
     if (detectedDevices[userName]) {
-        return detectedDevices[userName];   // ✅ détecté automatiquement
+        // Topic complet détecté automatiquement ex: "owntracks/owntracks/kevin"
+        return detectedDevices[userName];
     }
+    // Fallback : construire depuis config.js DEVICES
+    // ex: DEVICES["kevin"] = "kevin" → "owntracks/owntracks/kevin"
     if (CONFIG.DEVICES && CONFIG.DEVICES[userName]) {
-        return CONFIG.DEVICES[userName];    // fallback config.js
+        return "owntracks/owntracks/" + CONFIG.DEVICES[userName];
     }
-    return "iPhone";                        // fallback ultime
+    // Fallback ultime
+    return "owntracks/owntracks/" + userName;
 }
 
 /**
@@ -320,11 +323,12 @@ function sendCommand(userName, payload) {
         return;
     }
 
-    var deviceId = resolveDeviceId(userName);
-    var topic    = "owntracks/" + userName + "/" + deviceId + "/cmd";
+    var baseTopic = resolveDeviceId(userName);
+    var topic     = baseTopic + "/cmd";
     var message  = JSON.stringify(payload);
 
     log_debug("📤 Commande → " + userName + " [" + topic + "] : " + message);
+    var deviceId = baseTopic.split("/").pop(); // pour le log
 
     sendTo("mqtt.0", "sendMessage2Client", {
         topic   : topic,
@@ -333,7 +337,7 @@ function sendCommand(userName, payload) {
         if (result && result.error) {
             log_error("Commande échouée pour " + userName + " : " + result.error);
         } else {
-            log_debug("✅ Commande envoyée à " + userName + " (deviceId: " + deviceId + ")");
+            log_debug("✅ Commande envoyée à " + userName + " → topic: " + topic);
         }
     });
 }
