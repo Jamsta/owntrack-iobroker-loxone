@@ -2,7 +2,7 @@
  * ============================================================
  *  SCRIPT : owntracks_to_loxone.js
  *  AUTEUR : David (config) + GenSpark AI (génération)
- *  VERSION: 1.0.0
+ *  VERSION: 2.0.0
  *  DATE   : 2026-04-22
  * ============================================================
  *
@@ -10,33 +10,32 @@
  *  --------------
  *  Ce script écoute TOUTES les données brutes envoyées par
  *  l'adaptateur OwnTracks (owntracks.0) vers ioBroker,
- *  les stocke dans des variables structurées, et les pousse
- *  vers le Loxone Miniserver via des requêtes HTTP (Virtual
- *  HTTP Input dans Loxone Config).
+ *  et les pousse vers le Loxone Miniserver via HTTP Virtual Inputs.
+ *
+ *  PLATEFORME CIBLE : iOS UNIQUEMENT
+ *  ----------------------------------
+ *  Tous les champs disponibles sur iOS sont couverts :
+ *   - _type=location    : position GPS + données étendues
+ *   - _type=transition  : entrée/sortie de zones
+ *   - _type=steps       : podomètre (pas marchés)
+ *   - _type=lwt         : last will (déconnexion)
  *
  *  DÉTECTION AUTOMATIQUE DES UTILISATEURS
  *  ----------------------------------------
- *  Aucune configuration manuelle d'utilisateur n'est nécessaire.
- *  Dès qu'un nouveau téléphone se connecte à OwnTracks et envoie
- *  sa position, le script détecte automatiquement le nouvel
- *  utilisateur et commence à pousser ses données vers Loxone.
+ *  Dès qu'un nouveau téléphone envoie sa position, il est
+ *  détecté et ses données sont automatiquement poussées vers
+ *  Loxone sans aucune configuration manuelle.
  *
  *  PHILOSOPHIE
  *  -----------
- *  - PAS de logique métier ici (pas de "si David est à la maison")
- *  - TOUTES les données brutes sont exposées telles quelles
- *  - C'est Loxone qui se charge de la logique domotique
- *  - Le script est volontairement simple et lisible
+ *  - ZÉRO logique métier ici → c'est Loxone qui décide
+ *  - TOUTES les données brutes iOS exposées telles quelles
+ *  - Commentaires et balises pour modifier facilement
  *
- *  DONNÉES POUSSÉES VERS LOXONE (par utilisateur)
- *  ------------------------------------------------
- *  Voir section "STRUCTURE DES DONNÉES" plus bas
- *
- *  CONFIGURATION
- *  -------------
- *  ⚠️  NE PAS MODIFIER CE FICHIER pour la config.
- *  Toutes les valeurs sensibles sont dans : config.js
- *  (IPs, mots de passe, utilisateurs...)
+ *  UTILISATION DANS iBROKER
+ *  -------------------------
+ *  Coller d'abord le contenu de config.js, puis ce fichier,
+ *  dans un seul script JavaScript ioBroker.
  *
  *  ENTRÉES VIRTUELLES LOXONE À CRÉER
  *  -----------------------------------
@@ -48,26 +47,11 @@
 // ============================================================
 // ⚙️  CONFIGURATION — CHARGÉE DEPUIS config.js
 // ============================================================
+// ⚠️  NE PAS METTRE DE MOTS DE PASSE OU D'IPs ICI !
+// Toutes les valeurs sont dans config.js (non publié sur GitHub)
 //
-//  ⚠️  NE PAS METTRE DE MOTS DE PASSE OU D'IPs ICI !
-//  Toutes les valeurs sont dans config.js (non publié sur GitHub)
-//  Pour démarrer : copier config.example.js → config.js et remplir
-//
-// ============================================================
-
-// En environnement ioBroker JavaScript, le fichier config.js
-// doit être collé JUSTE AU-DESSUS de ce script dans l'éditeur,
-// ou chargé via readFile() si ioBroker le supporte.
-//
-// ── MÉTHODE RECOMMANDÉE ──────────────────────────────────────
-// Dans l'éditeur de scripts ioBroker, créer UN SEUL script
-// en collant d'abord le contenu de config.js, puis ce fichier.
-// ─────────────────────────────────────────────────────────────
-//
-// Valeurs par défaut (écrasées par config.js si présent)
+// Fallback si config.js n'est pas collé avant ce script :
 if (typeof CONFIG === 'undefined') {
-    // ⚠️  FALLBACK — Ne devrait pas arriver si config.js est bien chargé
-    // Modifier ici uniquement si tu n'utilises pas config.js
     var CONFIG = {
         LOXONE_IP           : "192.168.10.20",
         LOXONE_PORT         : 80,
@@ -81,28 +65,69 @@ if (typeof CONFIG === 'undefined') {
 }
 
 // ============================================================
-// 📦  STRUCTURE DES DONNÉES OwnTracks (référence)
+// 📦  RÉFÉRENCE COMPLÈTE — DONNÉES iOS OwnTracks
 // ============================================================
 //
-//  Chaque utilisateur détecté aura les états suivants dans ioBroker :
-//
+//  ── _type = location ──────────────────────────────────────
 //  owntracks.0.users.<NOM>.
-//    ├── latitude          → Latitude GPS (float, degrés)
-//    ├── longitude         → Longitude GPS (float, degrés)
-//    ├── accuracy          → Précision GPS en mètres (int)
-//    ├── altitude          → Altitude en mètres (int)
-//    ├── velocity          → Vitesse en km/h (int)
-//    ├── course            → Cap (direction) en degrés (int)
-//    ├── battery           → Niveau batterie du téléphone % (int)
-//    ├── batteryStatus     → État batterie (0=inconnu,1=débranché,2=charge,3=plein)
-//    ├── timestamp         → Timestamp UNIX de la position (int)
-//    ├── datetime          → Date/heure lisible (string)
-//    ├── trigger           → Déclencheur de la mise à jour (p/c/r/u/t/v)
-//    ├── connection        → Type de connexion (w=WiFi, o=offline, m=mobile)
-//    ├── ssid              → Nom du réseau WiFi (string)
-//    ├── inregions         → Zones géographiques actuelles (string JSON)
-//    ├── motionactivities  → Activité détectée (marche, voiture...) (string)
-//    └── trackerID         → Initiales affichées sur la carte (string)
+//    ├── [GPS]
+//    │   ├── latitude          float   degrés        Latitude GPS
+//    │   ├── longitude         float   degrés        Longitude GPS
+//    │   ├── accuracy          int     mètres        Précision horizontale GPS
+//    │   ├── altitude          int     mètres        Altitude / niveau mer
+//    │   ├── verticalAccuracy  int     mètres        Précision verticale (alt)
+//    │   ├── velocity          int     km/h          Vitesse de déplacement
+//    │   ├── course            int     degrés        Cap / direction (0-360°)
+//    │   └── pressure          float   kPa           Pression barométrique (extendedData)
+//    ├── [BATTERIE]
+//    │   ├── battery           int     %             Niveau batterie téléphone
+//    │   └── batteryStatus     int     0-3           0=inconnu 1=débranché 2=charge 3=plein
+//    ├── [HORODATAGE]
+//    │   ├── timestamp         int     epoch         Timestamp UNIX de la position GPS
+//    │   ├── created_at        int     epoch         Timestamp construction du message
+//    │   └── datetime          string  ISO           Date/heure lisible
+//    ├── [CONNECTIVITÉ]
+//    │   ├── connection        string  w/m/o         Type: w=WiFi m=mobile o=offline
+//    │   ├── connectionInt     int     0/1/2         0=offline 1=mobile 2=WiFi (numérique)
+//    │   ├── ssid              string  —             Nom réseau WiFi
+//    │   └── bssid             string  —             Adresse MAC point d'accès WiFi
+//    ├── [ZONES GÉOGRAPHIQUES]
+//    │   ├── inregions         string  JSON[]        Zones actuelles ex: ["Maison","Garage"]
+//    │   ├── inrids            string  JSON[]        IDs des zones actuelles
+//    │   ├── isHome            int     0/1           1=dans zone HOME configurée
+//    │   └── regionRadius      int     mètres        Rayon de la zone lors enter/leave
+//    ├── [ACTIVITÉ & MOUVEMENT]
+//    │   ├── motionactivities  string  —             stationary/walking/running/automotive/cycling
+//    │   └── monitoringMode    int     1/2           1=significant 2=move
+//    ├── [DÉCLENCHEUR]
+//    │   └── trigger           string  —             p=ping c=zone C=follow b=beacon r=cmd u=manuel t=timer v=iOS
+//    ├── [POINT D'INTÉRÊT]
+//    │   ├── poi               string  —             Nom du point d'intérêt
+//    │   └── tag               string  —             Tag associé à la position
+//    └── [IDENTIFIANT]
+//        ├── trackerID         string  —             Initiales (2 car.) affichées carte
+//        └── topic             string  —             Topic MQTT source
+//
+//  ── _type = transition ────────────────────────────────────
+//  owntracks.0.users.<NOM>.
+//    ├── lastTransitionEvent   string  enter/leave   Dernier événement zone
+//    ├── lastTransitionRegion  string  —             Nom de la zone concernée
+//    ├── lastTransitionRegionId string —             ID de la zone concernée
+//    ├── lastTransitionLat     float   degrés        Lat où l'événement s'est produit
+//    ├── lastTransitionLon     float   degrés        Lon où l'événement s'est produit
+//    ├── lastTransitionAcc     int     mètres        Précision GPS à l'événement
+//    ├── lastTransitionTst     int     epoch         Timestamp de l'événement
+//    └── lastTransitionTrigger string c/b            c=géo-zone b=beacon
+//
+//  ── _type = steps ─────────────────────────────────────────
+//  owntracks.0.users.<NOM>.
+//    ├── steps                 int     pas           Nombre de pas (podomètre)
+//    ├── stepsFrom             int     epoch         Début de la période mesurée
+//    └── stepsTo               int     epoch         Fin de la période mesurée
+//
+//  ── _type = lwt ───────────────────────────────────────────
+//  owntracks.0.users.<NOM>.
+//    └── lastSeen              int     epoch         Dernier contact avec le téléphone
 //
 // ============================================================
 
@@ -129,42 +154,38 @@ function log_error(msg) {
 /**
  * Envoie une valeur vers une Virtual HTTP Input de Loxone
  *
- * Format de l'URL Loxone Virtual HTTP Input :
- * http://<IP>/dev/sps/io/<NOM_ENTREE_VIRTUELLE>/<VALEUR>
+ * URL Loxone : http://<USER>:<PASS>@<IP>/dev/sps/io/<NOM_ENTREE>/<VALEUR>
  *
- * @param {string} inputName  - Nom de l'entrée virtuelle dans Loxone Config
+ * @param {string} inputName  - Nom exact de l'entrée virtuelle dans Loxone Config
  * @param {*}      value      - Valeur à envoyer
  */
 function sendToLoxone(inputName, value) {
-    // Encodage de la valeur pour l'URL
+    if (value === null || value === undefined) return;
+
     var encodedValue = encodeURIComponent(String(value));
 
-    // Construction de l'URL
     var url = "http://" + CONFIG.LOXONE_USER + ":" + CONFIG.LOXONE_PASS
             + "@" + CONFIG.LOXONE_IP + ":" + CONFIG.LOXONE_PORT
             + "/dev/sps/io/" + inputName + "/" + encodedValue;
 
     log_debug("→ Loxone : " + inputName + " = " + value);
 
-    // Envoi de la requête HTTP
     require("http").get(url, function(res) {
-        // Réponse ignorée volontairement (fire and forget)
-        res.resume();
+        res.resume(); // fire and forget
     }).on("error", function(e) {
         log_error("Impossible d'envoyer à Loxone [" + inputName + "] : " + e.message);
     });
 }
 
 /**
- * Construit le nom de l'entrée virtuelle Loxone pour un utilisateur
+ * Construit le nom de l'entrée virtuelle Loxone
  * Format : OT_<NOM_UTILISATEUR>_<CHAMP>
- * Exemple : OT_David_latitude, OT_Carole_battery
+ * Exemples : OT_David_latitude / OT_Carole_battery / OT_Kevin_isHome
  *
- * ⚠️  Ces noms doivent correspondre EXACTEMENT aux noms des
- *     Virtual Inputs créées dans Loxone Config
+ * ⚠️  Ces noms doivent correspondre EXACTEMENT aux entrées dans Loxone Config
  *
- * @param {string} userName  - Nom de l'utilisateur (DeviceID OwnTracks)
- * @param {string} field     - Nom du champ de donnée
+ * @param {string} userName  - DeviceID OwnTracks (ex: "David")
+ * @param {string} field     - Nom du champ
  * @returns {string}
  */
 function loxoneName(userName, field) {
@@ -175,43 +196,28 @@ function loxoneName(userName, field) {
 // 👥  GESTION DYNAMIQUE DES UTILISATEURS
 // ============================================================
 
-// Liste des utilisateurs détectés (alimentée automatiquement)
 var detectedUsers = {};
 
 /**
- * Récupère la liste des utilisateurs actuellement connus
- * dans l'adaptateur OwnTracks et initialise leur surveillance
+ * Découverte de tous les utilisateurs OwnTracks connus dans ioBroker
  */
 function discoverUsers() {
-    var pattern = CONFIG.OWNTRACKS_INSTANCE + ".users.*";
-
-    // Récupération de tous les états OwnTracks
     getObjectView("system", "state", {
-        startkey: CONFIG.OWNTRACKS_INSTANCE + ".users.",
-        endkey:   CONFIG.OWNTRACKS_INSTANCE + ".users.\u9999"
+        startkey : CONFIG.OWNTRACKS_INSTANCE + ".users.",
+        endkey   : CONFIG.OWNTRACKS_INSTANCE + ".users.\u9999"
     }, function(err, objects) {
-        if (err) {
-            log_error("Erreur lors de la découverte des utilisateurs : " + err);
-            return;
-        }
-
-        if (!objects || !objects.rows) {
+        if (err || !objects || !objects.rows) {
             log_debug("Aucun utilisateur OwnTracks trouvé pour l'instant.");
             return;
         }
-
-        // Extraction des noms d'utilisateurs uniques
         objects.rows.forEach(function(row) {
             if (row && row.id) {
-                // Format : owntracks.0.users.<NOM>.<champ>
-                var parts = row.id.split(".");
-                if (parts.length >= 4) {
-                    var userName = parts[3]; // ex: "David", "Carole"
-                    if (!detectedUsers[userName]) {
-                        detectedUsers[userName] = true;
-                        log_debug("✅ Utilisateur détecté : " + userName);
-                        watchUser(userName);
-                    }
+                var parts    = row.id.split(".");
+                var userName = parts[3];
+                if (userName && !detectedUsers[userName]) {
+                    detectedUsers[userName] = true;
+                    log_debug("✅ Utilisateur détecté : " + userName);
+                    watchUser(userName);
                 }
             }
         });
@@ -219,216 +225,386 @@ function discoverUsers() {
 }
 
 // ============================================================
-// 👁️  SURVEILLANCE D'UN UTILISATEUR
+// 👁️  SURVEILLANCE COMPLÈTE D'UN UTILISATEUR (iOS)
 // ============================================================
 
 /**
- * Met en place la surveillance en temps réel de tous les états
- * d'un utilisateur OwnTracks et les pousse vers Loxone à chaque
- * changement.
+ * Souscrit à TOUS les états ioBroker d'un utilisateur OwnTracks iOS
+ * et pousse chaque changement vers Loxone en temps réel.
  *
- * @param {string} userName - Nom de l'utilisateur (DeviceID OwnTracks)
+ * @param {string} userName - DeviceID OwnTracks (ex: "David")
  */
 function watchUser(userName) {
     var base = CONFIG.OWNTRACKS_INSTANCE + ".users." + userName + ".";
-
     log_debug("👁️  Surveillance activée pour : " + userName);
 
-    // ----------------------------------------------------------
-    // 📍 POSITION GPS
-    // ----------------------------------------------------------
+    // ==========================================================
+    // 📍  POSITION GPS
+    // ==========================================================
 
-    // Latitude
+    // Latitude GPS (float, degrés)
     on({ id: base + "latitude", change: "any" }, function(obj) {
         sendToLoxone(loxoneName(userName, "latitude"), obj.state.val);
     });
 
-    // Longitude
+    // Longitude GPS (float, degrés)
     on({ id: base + "longitude", change: "any" }, function(obj) {
         sendToLoxone(loxoneName(userName, "longitude"), obj.state.val);
     });
 
-    // Précision GPS (mètres)
+    // Précision horizontale GPS (int, mètres) — plus petit = meilleur
     on({ id: base + "accuracy", change: "any" }, function(obj) {
         sendToLoxone(loxoneName(userName, "accuracy"), obj.state.val);
     });
 
-    // Altitude (mètres)
+    // Altitude au-dessus du niveau de la mer (int, mètres)
     on({ id: base + "altitude", change: "any" }, function(obj) {
         sendToLoxone(loxoneName(userName, "altitude"), obj.state.val || 0);
     });
 
-    // Vitesse (km/h)
+    // Précision verticale de l'altitude (int, mètres) — iOS uniquement
+    on({ id: base + "verticalAccuracy", change: "any" }, function(obj) {
+        sendToLoxone(loxoneName(userName, "verticalAccuracy"), obj.state.val || 0);
+    });
+
+    // Vitesse de déplacement (int, km/h)
     on({ id: base + "velocity", change: "any" }, function(obj) {
         sendToLoxone(loxoneName(userName, "velocity"), obj.state.val || 0);
     });
 
-    // Cap / Direction (degrés 0-360)
+    // Cap / Direction de déplacement (int, degrés 0-360°) — iOS uniquement
     on({ id: base + "course", change: "any" }, function(obj) {
         sendToLoxone(loxoneName(userName, "course"), obj.state.val || 0);
     });
 
-    // ----------------------------------------------------------
-    // 🔋 BATTERIE
-    // ----------------------------------------------------------
+    // Pression barométrique (float, kPa) — iOS uniquement, nécessite extendedData=true
+    on({ id: base + "pressure", change: "any" }, function(obj) {
+        sendToLoxone(loxoneName(userName, "pressure"), obj.state.val || 0);
+    });
 
-    // Niveau batterie (%)
+    // ==========================================================
+    // 🔋  BATTERIE TÉLÉPHONE
+    // ==========================================================
+
+    // Niveau de batterie (int, %)
     on({ id: base + "battery", change: "any" }, function(obj) {
         sendToLoxone(loxoneName(userName, "battery"), obj.state.val);
     });
 
-    // État batterie (0=inconnu, 1=débranché, 2=en charge, 3=plein)
+    // État de la batterie (int) : 0=inconnu / 1=débranché / 2=en charge / 3=plein
     on({ id: base + "batteryStatus", change: "any" }, function(obj) {
         sendToLoxone(loxoneName(userName, "batteryStatus"), obj.state.val || 0);
     });
 
-    // ----------------------------------------------------------
+    // ==========================================================
     // ⏱️  HORODATAGE
-    // ----------------------------------------------------------
+    // ==========================================================
 
-    // Timestamp UNIX (secondes)
+    // Timestamp UNIX du fix GPS (int, secondes epoch)
     on({ id: base + "timestamp", change: "any" }, function(obj) {
         sendToLoxone(loxoneName(userName, "timestamp"), obj.state.val);
     });
 
-    // Date/heure lisible (string ISO)
-    on({ id: base + "datetime", change: "any" }, function(obj) {
-        // On envoie seulement la partie heure pour Loxone
-        // Format attendu : HH:MM:SS
-        var dt = obj.state.val;
-        sendToLoxone(loxoneName(userName, "datetime"), dt);
+    // Timestamp UNIX de construction du message (int, secondes epoch) — iOS uniquement
+    // Peut différer de timestamp si le fix GPS est en cache
+    on({ id: base + "created_at", change: "any" }, function(obj) {
+        sendToLoxone(loxoneName(userName, "created_at"), obj.state.val || 0);
     });
 
-    // ----------------------------------------------------------
-    // 📶 CONNECTIVITÉ
-    // ----------------------------------------------------------
+    // Date/heure lisible (string, format ISO)
+    on({ id: base + "datetime", change: "any" }, function(obj) {
+        sendToLoxone(loxoneName(userName, "datetime"), obj.state.val);
+    });
 
-    // Type de connexion : "w"=WiFi, "o"=offline, "m"=mobile
+    // ==========================================================
+    // 📶  CONNECTIVITÉ RÉSEAU
+    // ==========================================================
+
+    // Type de connexion Internet (string) : "w"=WiFi / "m"=mobile / "o"=offline
+    // Nécessite extendedData=true dans l'app
     on({ id: base + "connection", change: "any" }, function(obj) {
-        var conn = obj.state.val;
-        // Conversion en entier pour Loxone (0=offline, 1=mobile, 2=WiFi)
+        var conn    = obj.state.val;
         var connInt = (conn === "w") ? 2 : (conn === "m") ? 1 : 0;
-        sendToLoxone(loxoneName(userName, "connection"),    conn    || "o");
+        sendToLoxone(loxoneName(userName, "connection"),    conn || "o");
+        // Version numérique pour faciliter les conditions dans Loxone
+        // 0=offline / 1=mobile / 2=WiFi
         sendToLoxone(loxoneName(userName, "connectionInt"), connInt);
     });
 
-    // Nom du réseau WiFi
+    // Nom du réseau WiFi (string) — iOS uniquement
     on({ id: base + "ssid", change: "any" }, function(obj) {
         sendToLoxone(loxoneName(userName, "ssid"), obj.state.val || "");
     });
 
-    // ----------------------------------------------------------
-    // 📍 ZONES GÉOGRAPHIQUES (Regions/Waypoints)
-    // ----------------------------------------------------------
+    // Adresse MAC du point d'accès WiFi (string) — iOS uniquement
+    on({ id: base + "bssid", change: "any" }, function(obj) {
+        sendToLoxone(loxoneName(userName, "bssid"), obj.state.val || "");
+    });
 
-    // Zones dans lesquelles l'utilisateur se trouve actuellement
-    // Valeur = JSON array ex: ["Maison","Garage"]
-    on({ id: base + "regions", change: "any" }, function(obj) {
+    // ==========================================================
+    // 📍  ZONES GÉOGRAPHIQUES (Regions / Waypoints)
+    // ==========================================================
+
+    // Liste des zones dans lesquelles l'utilisateur se trouve (string JSON array)
+    // Exemple : ["Maison","Garage"] ou []
+    on({ id: base + "inregions", change: "any" }, function(obj) {
         var regions = obj.state.val;
-        // Envoi brut de la chaîne JSON
-        sendToLoxone(loxoneName(userName, "regions"), regions || "[]");
+        sendToLoxone(loxoneName(userName, "inregions"), regions || "[]");
 
         // -------------------------------------------------------
-        // 💡 BALISE — Présence à la maison
+        // 💡 BALISE — Présence à la maison (0 ou 1)
         // -------------------------------------------------------
-        // Le nom de la zone vient de config.js → ZONES.HOME
-        // Pour changer la zone : modifier config.js uniquement
-        var homeZoneName = (CONFIG.ZONES && CONFIG.ZONES.HOME) ? CONFIG.ZONES.HOME : "Maison";
-        var isHome = (regions && regions.indexOf(homeZoneName) !== -1) ? 1 : 0;
+        // Nom de la zone configuré dans config.js → ZONES.HOME
+        // Modifier uniquement dans config.js
+        var homeZone = (CONFIG.ZONES && CONFIG.ZONES.HOME) ? CONFIG.ZONES.HOME : "Maison";
+        var isHome   = (regions && regions.indexOf(homeZone) !== -1) ? 1 : 0;
         sendToLoxone(loxoneName(userName, "isHome"), isHome);
         // -------------------------------------------------------
     });
 
-    // ----------------------------------------------------------
-    // 🚶 ACTIVITÉ / MOUVEMENT
-    // ----------------------------------------------------------
+    // Liste des IDs de zones (string JSON array) — iOS uniquement
+    // Exemple : ["6da9cf","3defa7"]
+    on({ id: base + "inrids", change: "any" }, function(obj) {
+        sendToLoxone(loxoneName(userName, "inrids"), obj.state.val || "[]");
+    });
 
-    // Activité détectée par le téléphone
-    // Valeurs possibles : stationary, walking, running, automotive, cycling, unknown
+    // Rayon de la zone lors d'un enter/leave (int, mètres) — iOS uniquement
+    on({ id: base + "regionRadius", change: "any" }, function(obj) {
+        sendToLoxone(loxoneName(userName, "regionRadius"), obj.state.val || 0);
+    });
+
+    // ==========================================================
+    // 🚶  ACTIVITÉ & MOUVEMENT
+    // ==========================================================
+
+    // Activité détectée par CoreMotion iOS (string)
+    // Valeurs : stationary / walking / running / automotive / cycling / unknown
     on({ id: base + "motionactivities", change: "any" }, function(obj) {
         sendToLoxone(loxoneName(userName, "motionactivities"), obj.state.val || "unknown");
     });
 
-    // Déclencheur de la mise à jour de position
-    // p=ping, c=zone, r=réponse commande, u=manuel, t=timer, v=iOS fréquents
+    // Mode de surveillance GPS au moment de la mise à jour (int) — iOS uniquement
+    // 1 = significant (économique) / 2 = move (précis, consomme plus)
+    on({ id: base + "monitoringMode", change: "any" }, function(obj) {
+        sendToLoxone(loxoneName(userName, "monitoringMode"), obj.state.val || 0);
+    });
+
+    // ==========================================================
+    // 🎯  DÉCLENCHEUR DE LA MISE À JOUR
+    // ==========================================================
+
+    // Raison de la mise à jour de position (string)
+    // p=ping auto / c=zone circulaire / C=follow zone / b=beacon
+    // r=réponse commande / u=manuel utilisateur / t=timer move mode / v=iOS frequent locations
     on({ id: base + "trigger", change: "any" }, function(obj) {
         sendToLoxone(loxoneName(userName, "trigger"), obj.state.val || "p");
     });
 
-    // ----------------------------------------------------------
-    // 🏷️  IDENTIFIANT
-    // ----------------------------------------------------------
+    // ==========================================================
+    // 📌  POINT D'INTÉRÊT
+    // ==========================================================
 
-    // Initiales / Tracker ID (2 caractères max)
+    // Nom du point d'intérêt associé à la position (string) — iOS uniquement
+    on({ id: base + "poi", change: "any" }, function(obj) {
+        sendToLoxone(loxoneName(userName, "poi"), obj.state.val || "");
+    });
+
+    // Tag associé à la position (string) — iOS uniquement
+    on({ id: base + "tag", change: "any" }, function(obj) {
+        sendToLoxone(loxoneName(userName, "tag"), obj.state.val || "");
+    });
+
+    // ==========================================================
+    // 🏷️  IDENTIFIANT UTILISATEUR
+    // ==========================================================
+
+    // Initiales affichées sur la carte OwnTracks (string, 2 caractères max)
     on({ id: base + "trackerID", change: "any" }, function(obj) {
         sendToLoxone(loxoneName(userName, "trackerID"), obj.state.val || "");
     });
 
-    // ----------------------------------------------------------
-    // 🔁 PUSH COMPLET INITIAL
-    // Envoie immédiatement toutes les valeurs actuelles à Loxone
-    // au démarrage du script (pas d'attente d'un changement)
-    // ----------------------------------------------------------
+    // Topic MQTT source (string) — présent dans les payloads HTTP
+    on({ id: base + "topic", change: "any" }, function(obj) {
+        sendToLoxone(loxoneName(userName, "topic"), obj.state.val || "");
+    });
+
+    // ==========================================================
+    // 🔔  TRANSITIONS (entrée/sortie de zones) — iOS uniquement
+    // ==========================================================
+    // Ces états sont mis à jour par l'adaptateur OwnTracks
+    // lors de la réception d'un message _type=transition
+
+    // Dernier événement de zone (string) : "enter" ou "leave"
+    on({ id: base + "lastTransitionEvent", change: "any" }, function(obj) {
+        sendToLoxone(loxoneName(userName, "lastTransitionEvent"), obj.state.val || "");
+        // Version numérique : 1=enter / 0=leave (plus simple pour Loxone)
+        var eventInt = (obj.state.val === "enter") ? 1 : 0;
+        sendToLoxone(loxoneName(userName, "lastTransitionEventInt"), eventInt);
+    });
+
+    // Nom de la zone concernée par la dernière transition (string)
+    on({ id: base + "lastTransitionRegion", change: "any" }, function(obj) {
+        sendToLoxone(loxoneName(userName, "lastTransitionRegion"), obj.state.val || "");
+    });
+
+    // ID de la zone concernée par la dernière transition (string) — iOS uniquement
+    on({ id: base + "lastTransitionRegionId", change: "any" }, function(obj) {
+        sendToLoxone(loxoneName(userName, "lastTransitionRegionId"), obj.state.val || "");
+    });
+
+    // Latitude de l'événement de transition (float, degrés)
+    on({ id: base + "lastTransitionLat", change: "any" }, function(obj) {
+        sendToLoxone(loxoneName(userName, "lastTransitionLat"), obj.state.val || 0);
+    });
+
+    // Longitude de l'événement de transition (float, degrés)
+    on({ id: base + "lastTransitionLon", change: "any" }, function(obj) {
+        sendToLoxone(loxoneName(userName, "lastTransitionLon"), obj.state.val || 0);
+    });
+
+    // Précision GPS à l'événement de transition (int, mètres)
+    on({ id: base + "lastTransitionAcc", change: "any" }, function(obj) {
+        sendToLoxone(loxoneName(userName, "lastTransitionAcc"), obj.state.val || 0);
+    });
+
+    // Timestamp de la dernière transition (int, epoch)
+    on({ id: base + "lastTransitionTst", change: "any" }, function(obj) {
+        sendToLoxone(loxoneName(userName, "lastTransitionTst"), obj.state.val || 0);
+    });
+
+    // Déclencheur de la transition (string) : "c"=zone géo / "b"=beacon
+    on({ id: base + "lastTransitionTrigger", change: "any" }, function(obj) {
+        sendToLoxone(loxoneName(userName, "lastTransitionTrigger"), obj.state.val || "");
+    });
+
+    // ==========================================================
+    // 👣  PODOMÈTRE (steps) — iOS uniquement
+    // ==========================================================
+
+    // Nombre de pas marchés sur la période (int)
+    // -1 si l'appareil ne supporte pas le podomètre
+    on({ id: base + "steps", change: "any" }, function(obj) {
+        sendToLoxone(loxoneName(userName, "steps"), obj.state.val || 0);
+    });
+
+    // Timestamp début de la période de mesure des pas (int, epoch)
+    on({ id: base + "stepsFrom", change: "any" }, function(obj) {
+        sendToLoxone(loxoneName(userName, "stepsFrom"), obj.state.val || 0);
+    });
+
+    // Timestamp fin de la période de mesure des pas (int, epoch)
+    on({ id: base + "stepsTo", change: "any" }, function(obj) {
+        sendToLoxone(loxoneName(userName, "stepsTo"), obj.state.val || 0);
+    });
+
+    // ==========================================================
+    // 📡  LAST WILL & TESTAMENT (lwt) — déconnexion téléphone
+    // ==========================================================
+
+    // Timestamp du dernier contact connu avec le téléphone (int, epoch)
+    // Mis à jour par le broker MQTT quand le téléphone se déconnecte
+    on({ id: base + "lastSeen", change: "any" }, function(obj) {
+        sendToLoxone(loxoneName(userName, "lastSeen"), obj.state.val || 0);
+        // Calcul du temps écoulé depuis le dernier contact (secondes)
+        var elapsed = obj.state.val ? Math.floor(Date.now() / 1000) - obj.state.val : 0;
+        sendToLoxone(loxoneName(userName, "lastSeenElapsed"), elapsed);
+    });
+
+    // ==========================================================
+    // 🔁  PUSH COMPLET INITIAL AU DÉMARRAGE
+    // ==========================================================
+    // Envoie immédiatement toutes les valeurs actuelles vers Loxone
+    // sans attendre un changement (utile au redémarrage du script)
     pushAllValues(userName);
 }
 
+// ============================================================
+// 📤  PUSH COMPLET DE TOUTES LES VALEURS
+// ============================================================
+
 /**
- * Pousse IMMÉDIATEMENT toutes les valeurs actuelles d'un utilisateur
- * vers Loxone (utile au démarrage du script)
+ * Lit tous les états ioBroker d'un utilisateur et les envoie à Loxone
+ * Appelé au démarrage et lors du polling de sécurité
  *
  * @param {string} userName
  */
 function pushAllValues(userName) {
     var base = CONFIG.OWNTRACKS_INSTANCE + ".users." + userName + ".";
 
+    // Liste exhaustive de tous les champs iOS
     var fields = [
+        // GPS
         "latitude", "longitude", "accuracy", "altitude",
-        "velocity", "course", "battery", "batteryStatus",
-        "timestamp", "datetime", "connection", "ssid",
-        "regions", "motionactivities", "trigger", "trackerID"
+        "verticalAccuracy", "velocity", "course", "pressure",
+        // Batterie
+        "battery", "batteryStatus",
+        // Horodatage
+        "timestamp", "created_at", "datetime",
+        // Connectivité
+        "connection", "ssid", "bssid",
+        // Zones
+        "inregions", "inrids", "regionRadius",
+        // Activité
+        "motionactivities", "monitoringMode",
+        // Déclencheur
+        "trigger",
+        // Point d'intérêt
+        "poi", "tag",
+        // Identifiant
+        "trackerID", "topic",
+        // Transitions
+        "lastTransitionEvent", "lastTransitionRegion", "lastTransitionRegionId",
+        "lastTransitionLat", "lastTransitionLon", "lastTransitionAcc",
+        "lastTransitionTst", "lastTransitionTrigger",
+        // Podomètre
+        "steps", "stepsFrom", "stepsTo",
+        // Last Will
+        "lastSeen"
     ];
 
     fields.forEach(function(field) {
-        var stateId = base + field;
-        getState(stateId, function(err, state) {
-            if (!err && state && state.val !== null && state.val !== undefined) {
-                sendToLoxone(loxoneName(userName, field), state.val);
+        getState(base + field, function(err, state) {
+            if (err || !state || state.val === null || state.val === undefined) return;
 
-                // Traitement spéciaux
-                if (field === "connection") {
-                    var conn = state.val;
-                    var connInt = (conn === "w") ? 2 : (conn === "m") ? 1 : 0;
-                    sendToLoxone(loxoneName(userName, "connectionInt"), connInt);
-                }
-                if (field === "regions") {
-                    var homeZone = (CONFIG.ZONES && CONFIG.ZONES.HOME) ? CONFIG.ZONES.HOME : "Maison";
-                    var isHome = (state.val && state.val.indexOf(homeZone) !== -1) ? 1 : 0;
-                    sendToLoxone(loxoneName(userName, "isHome"), isHome);
-                }
+            sendToLoxone(loxoneName(userName, field), state.val);
+
+            // Traitements dérivés
+            if (field === "connection") {
+                var conn    = state.val;
+                var connInt = (conn === "w") ? 2 : (conn === "m") ? 1 : 0;
+                sendToLoxone(loxoneName(userName, "connectionInt"), connInt);
+            }
+            if (field === "inregions") {
+                var homeZone = (CONFIG.ZONES && CONFIG.ZONES.HOME) ? CONFIG.ZONES.HOME : "Maison";
+                var isHome   = (state.val && state.val.indexOf(homeZone) !== -1) ? 1 : 0;
+                sendToLoxone(loxoneName(userName, "isHome"), isHome);
+            }
+            if (field === "lastTransitionEvent") {
+                var eventInt = (state.val === "enter") ? 1 : 0;
+                sendToLoxone(loxoneName(userName, "lastTransitionEventInt"), eventInt);
+            }
+            if (field === "lastSeen") {
+                var elapsed = state.val ? Math.floor(Date.now() / 1000) - state.val : 0;
+                sendToLoxone(loxoneName(userName, "lastSeenElapsed"), elapsed);
             }
         });
     });
 }
 
 // ============================================================
-// 🆕  DÉTECTION DE NOUVEAUX UTILISATEURS EN TEMPS RÉEL
+// 🆕  DÉTECTION AUTOMATIQUE DES NOUVEAUX UTILISATEURS
 // ============================================================
 
-/**
- * Surveille l'apparition de nouveaux utilisateurs OwnTracks.
- * Dès qu'un nouvel état "owntracks.0.users.<NOM>.*" est créé,
- * le script démarre automatiquement la surveillance de ce user.
- */
+// Dès qu'un nouveau téléphone envoie sa première latitude,
+// le script le détecte et démarre automatiquement sa surveillance
 on({
-    id    : new RegExp("^" + CONFIG.OWNTRACKS_INSTANCE + "\\.users\\.([^.]+)\\.latitude$"),
+    id    : new RegExp("^" + CONFIG.OWNTRACKS_INSTANCE.replace(".", "\\.") + "\\.users\\.([^.]+)\\.latitude$"),
     type  : "state",
     change: "any"
 }, function(obj) {
-    // Extraction du nom d'utilisateur depuis l'ID de l'état
     var parts    = obj.id.split(".");
-    var userName = parts[3]; // ex: "David"
-
-    if (!detectedUsers[userName]) {
+    var userName = parts[3];
+    if (userName && !detectedUsers[userName]) {
         detectedUsers[userName] = true;
         log_debug("🆕 Nouvel utilisateur détecté automatiquement : " + userName);
         watchUser(userName);
@@ -438,29 +614,27 @@ on({
 // ============================================================
 // ⏰  POLLING DE SÉCURITÉ
 // ============================================================
-// En plus des subscriptions temps réel, un polling périodique
-// re-découvre les utilisateurs et re-pousse toutes les valeurs.
-// Cela garantit la synchronisation même si un événement a été manqué.
+// Re-découverte des utilisateurs + re-push complet toutes les
+// POLLING_INTERVAL_MS millisecondes (défaut : 30 secondes)
+// Garantit la synchronisation même si un événement a été manqué
 
 setInterval(function() {
-    log_debug("🔄 Polling de sécurité — redécouverte des utilisateurs...");
+    log_debug("🔄 Polling de sécurité — synchronisation Loxone...");
     discoverUsers();
-
-    // Re-push de toutes les valeurs pour les utilisateurs connus
     Object.keys(detectedUsers).forEach(function(userName) {
         pushAllValues(userName);
     });
-
 }, CONFIG.POLLING_INTERVAL_MS);
 
 // ============================================================
 // 🚀  DÉMARRAGE
 // ============================================================
 
-log("[OwnTracks→Loxone] ✅ Script démarré !");
-log("[OwnTracks→Loxone] 🎯 Loxone cible : " + CONFIG.LOXONE_IP + ":" + CONFIG.LOXONE_PORT);
-log("[OwnTracks→Loxone] 📡 Instance OwnTracks : " + CONFIG.OWNTRACKS_INSTANCE);
+log("[OwnTracks→Loxone] ✅ Script v2.0 démarré !");
+log("[OwnTracks→Loxone] 🎯 Loxone   : " + CONFIG.LOXONE_IP + ":" + CONFIG.LOXONE_PORT);
+log("[OwnTracks→Loxone] 📡 OwnTracks : " + CONFIG.OWNTRACKS_INSTANCE);
+log("[OwnTracks→Loxone] 🏠 Zone HOME : " + ((CONFIG.ZONES && CONFIG.ZONES.HOME) ? CONFIG.ZONES.HOME : "Maison"));
+log("[OwnTracks→Loxone] 📱 Plateforme cible : iOS");
 log("[OwnTracks→Loxone] 👥 Découverte automatique des utilisateurs activée");
 
-// Lancement de la découverte initiale
 discoverUsers();
