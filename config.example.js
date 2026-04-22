@@ -77,9 +77,9 @@ const CONFIG = {
     //
     // ⚙️  DEVICES (optionnel — fallback uniquement) :
     DEVICES : {
-        "Prenom1" : "iPhone",   // fallback avant auto-détection
-        "Prenom2" : "iPhone",   // fallback avant auto-détection
-        // "Prenom3" : "iPhone", // ← Décommenter pour ajouter un utilisateur
+        "prenom1" : "prenom1",   // DeviceID = identique au UserID MQTT (en minuscules)
+        "prenom2" : "prenom2",   // DeviceID = identique au UserID MQTT (en minuscules)
+        // "prenom3" : "prenom3", // ← Décommenter pour ajouter un utilisateur
     },
 
     // ----------------------------------------------------------
@@ -95,9 +95,9 @@ const CONFIG = {
     // 💡 Ce tableau sert uniquement à créer les états de commandes
     //    au démarrage du script pour les utilisateurs connus.
     USERS : [
-        "Prenom1",    // Téléphone de la personne 1
-        "Prenom2",    // Téléphone de la personne 2
-        // "Prenom3", // ← Décommenter pour ajouter un utilisateur connu
+        "prenom1",    // Téléphone de la personne 1 (doit correspondre au DeviceID dans l'app)
+        "prenom2",    // Téléphone de la personne 2 (doit correspondre au DeviceID dans l'app)
+        // "prenom3", // ← Décommenter pour ajouter un utilisateur connu
     ],
 
     // ----------------------------------------------------------
