@@ -64,7 +64,6 @@ owntrack-iobroker-loxone/
 ### ioBroker
 - Adaptateur **MQTT** (`mqtt.0`) installé et actif — port **1884**
 - Adaptateur **JavaScript** installé (pour exécuter le script)
-- Adaptateur **OwnTracks** (`owntracks.0`) — optionnel, non utilisé par le script v5.x
 
 ### Application OwnTracks (iPhone)
 - Mode de connexion : **MQTT Private**
