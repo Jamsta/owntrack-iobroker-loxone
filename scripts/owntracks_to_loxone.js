@@ -1,8 +1,8 @@
 /**
  * ============================================================
  *  SCRIPT : owntracks_to_loxone.js
- *  AUTEUR : David (config) + GenSpark AI (génération)
- *  VERSION: 2.0.0
+ *  AUTEUR : Kevin (config) + GenSpark AI (génération)
+ *  VERSION: 3.0.0
  *  DATE   : 2026-04-22
  * ============================================================
  *
@@ -11,6 +11,18 @@
  *  Ce script écoute TOUTES les données brutes envoyées par
  *  l'adaptateur OwnTracks (owntracks.0) vers ioBroker,
  *  et les pousse vers le Loxone Miniserver via HTTP Virtual Inputs.
+ *
+ *  NOUVEAUTÉS v3.0
+ *  ---------------
+ *  ✅ Chiffrement OwnTracks (libsodium secretbox) — optionnel
+ *  ✅ Commandes bidirectionnelles ioBroker → Téléphone
+ *     - reportLocation  : forcer un fix GPS immédiat
+ *     - reportSteps     : demander le podomètre
+ *     - setWaypoints    : envoyer/modifier des zones géo
+ *     - setConfiguration: modifier la config de l'app à distance
+ *     - restart         : redémarrer l'app OwnTracks
+ *     - dump            : rapport d'état complet
+ *  ✅ Helpers Loxone → commande (via Virtual HTTP Input dédiée)
  *
  *  PLATEFORME CIBLE : iOS UNIQUEMENT
  *  ----------------------------------
@@ -41,6 +53,10 @@
  *  -----------------------------------
  *  Voir le fichier : loxone/virtual_inputs.md
  *
+ *  DOCUMENTATION DES COMMANDES
+ *  ----------------------------
+ *  Voir le fichier : owntracks/commands.md
+ *
  * ============================================================
  */
 
@@ -53,14 +69,22 @@
 // Fallback si config.js n'est pas collé avant ce script :
 if (typeof CONFIG === 'undefined') {
     var CONFIG = {
-        LOXONE_IP           : "192.168.10.20",
-        LOXONE_PORT         : 80,
-        LOXONE_USER         : "admin",
-        LOXONE_PASS         : "VOIR_config.js",
-        OWNTRACKS_INSTANCE  : "owntracks.0",
-        ZONES               : { HOME: "Maison" },
-        POLLING_INTERVAL_MS : 30000,
-        DEBUG               : true,
+        LOXONE_IP            : "192.168.10.20",
+        LOXONE_PORT          : 80,
+        LOXONE_USER          : "admin",
+        LOXONE_PASS          : "VOIR_config.js",
+        OWNTRACKS_INSTANCE   : "owntracks.0",
+        MQTT_BROKER_IP       : "192.168.10.20",
+        MQTT_BROKER_PORT     : 1884,
+        MQTT_USER            : "owntracks",
+        MQTT_PASS            : "VOIR_config.js",
+        ENCRYPTION_ENABLED   : false,
+        ENCRYPTION_KEY       : "",
+        COMMANDS_ENABLED     : true,
+        DEVICES              : {},
+        ZONES                : { HOME: "Maison" },
+        POLLING_INTERVAL_MS  : 30000,
+        DEBUG                : true,
     };
 }
 
@@ -184,12 +208,323 @@ function sendToLoxone(inputName, value) {
  *
  * ⚠️  Ces noms doivent correspondre EXACTEMENT aux entrées dans Loxone Config
  *
- * @param {string} userName  - DeviceID OwnTracks (ex: "David")
+ * @param {string} userName  - DeviceID OwnTracks (ex: "Kevin")
  * @param {string} field     - Nom du champ
  * @returns {string}
  */
 function loxoneName(userName, field) {
     return "OT_" + userName + "_" + field;
+}
+
+// ============================================================
+// 🔐  CHIFFREMENT OWNTRACKS — INFORMATIONS
+// ============================================================
+//
+//  OwnTracks utilise libsodium secretbox pour chiffrer les
+//  payloads JSON. Le chiffrement est géré AUTOMATIQUEMENT
+//  par l'adaptateur owntracks.0 d'ioBroker si la clé est
+//  configurée dans l'adaptateur.
+//
+//  ÉTAPES DE CONFIGURATION DU CHIFFREMENT :
+//
+//  1. Dans ioBroker → Adaptateurs → owntracks.0 → Configuration
+//     → Champ "Encryption key" → saisir la clé (max 32 cars)
+//
+//  2. Sur chaque iPhone OwnTracks :
+//     → Settings → (nom du compte) → Encryption
+//     → Activer et saisir la MÊME clé
+//
+//  3. Dans config.js de ce projet :
+//     → ENCRYPTION_ENABLED : true
+//     → ENCRYPTION_KEY     : "ta_clé_secrète"
+//     (utilisé uniquement pour la documentation et le log)
+//
+//  ⚠️  IMPORTANT : une fois activé, tous les appareils doivent
+//     utiliser la même clé. Un appareil sans clé sera ignoré.
+//
+//  Ce script ne fait PAS le déchiffrement lui-même — c'est
+//  l'adaptateur owntracks.0 qui le fait en amont. Les états
+//  ioBroker reçus ici sont déjà en clair.
+//
+if (CONFIG.ENCRYPTION_ENABLED) {
+    log("[OwnTracks→Loxone] 🔐 Chiffrement : ACTIVÉ (libsodium secretbox)", "info");
+    log("[OwnTracks→Loxone] 🔐 Clé configurée dans owntracks.0 et sur les iPhones", "info");
+} else {
+    log("[OwnTracks→Loxone] 🔓 Chiffrement : désactivé (réseau local uniquement)", "info");
+}
+
+// ============================================================
+// 📤  COMMANDES BIDIRECTIONNELLES (ioBroker → Téléphone)
+// ============================================================
+//
+//  Les commandes permettent à ioBroker (ou Loxone via une
+//  entrée virtuelle) d'envoyer des instructions aux téléphones.
+//
+//  MÉCANISME :
+//  -----------
+//  ioBroker publie un message JSON sur le topic MQTT :
+//    owntracks/<username>/<deviceId>/cmd
+//
+//  L'app OwnTracks sur le téléphone reçoit la commande et agit.
+//
+//  PRÉREQUIS :
+//  -----------
+//  L'adaptateur mqtt.0 doit être actif (port 1884)
+//  Les DEVICES doivent être configurés dans config.js
+//
+// ============================================================
+
+/**
+ * Envoie une commande MQTT vers un téléphone OwnTracks
+ *
+ * @param {string} userName  - Nom de l'utilisateur (ex: "Kevin")
+ * @param {object} payload   - Objet JSON de la commande OwnTracks
+ *
+ * Exemple :
+ *   sendCommand("Kevin", { _type: "cmd", action: "reportLocation" })
+ */
+function sendCommand(userName, payload) {
+    if (!CONFIG.COMMANDS_ENABLED) {
+        log_debug("⚠️  Commandes désactivées (COMMANDS_ENABLED=false dans config.js)");
+        return;
+    }
+
+    var deviceId = (CONFIG.DEVICES && CONFIG.DEVICES[userName])
+                   ? CONFIG.DEVICES[userName]
+                   : "iPhone";
+
+    var topic   = "owntracks/" + userName + "/" + deviceId + "/cmd";
+    var message = JSON.stringify(payload);
+
+    log_debug("📤 Commande → " + userName + " [" + topic + "] : " + message);
+
+    // Publication via l'adaptateur mqtt.0 d'ioBroker
+    // sendTo() est l'API ioBroker pour envoyer à un adaptateur
+    sendTo("mqtt.0", "sendMessage2Client", {
+        topic   : topic,
+        message : message
+    }, function(result) {
+        if (result && result.error) {
+            log_error("Commande échouée pour " + userName + " : " + result.error);
+        } else {
+            log_debug("✅ Commande envoyée à " + userName);
+        }
+    });
+}
+
+// ============================================================
+// 🎮  HELPERS DE COMMANDES — APPELS DIRECTS
+// ============================================================
+// Ces fonctions peuvent être appelées depuis :
+//   - Ce script (ex: depuis un on() sur état Loxone)
+//   - Un autre script ioBroker
+//   - Un Blockly / règle d'automatisation ioBroker
+//
+// ────────────────────────────────────────────────────────────
+
+/**
+ * 📍 reportLocation — Force une mise à jour GPS immédiate
+ *
+ * Le téléphone envoie immédiatement sa position actuelle.
+ * Utile pour forcer une synchro sans attendre le prochain cycle.
+ *
+ * Déclencheur Loxone suggéré : OT_CMD_reportLocation (entrée virtuelle)
+ *
+ * @param {string} userName
+ */
+function cmdReportLocation(userName) {
+    log_debug("📍 Commande reportLocation → " + userName);
+    sendCommand(userName, {
+        _type  : "cmd",
+        action : "reportLocation"
+    });
+}
+
+/**
+ * 👣 reportSteps — Demande le nombre de pas (podomètre)
+ *
+ * Le téléphone répond avec un message _type=steps contenant
+ * les champs : steps, stepsFrom, stepsTo
+ *
+ * @param {string} userName
+ */
+function cmdReportSteps(userName) {
+    log_debug("👣 Commande reportSteps → " + userName);
+    sendCommand(userName, {
+        _type  : "cmd",
+        action : "reportSteps"
+    });
+}
+
+/**
+ * 🔄 restart — Redémarre l'application OwnTracks
+ *
+ * ⚠️  Utiliser avec précaution — interrompt brièvement le tracking
+ *
+ * @param {string} userName
+ */
+function cmdRestart(userName) {
+    log_debug("🔄 Commande restart → " + userName);
+    sendCommand(userName, {
+        _type  : "cmd",
+        action : "restart"
+    });
+}
+
+/**
+ * 📊 dump — Demande un rapport complet d'état
+ *
+ * Le téléphone répond avec une configuration complète incluant :
+ * waypoints, configuration actuelle, et état de l'app.
+ *
+ * @param {string} userName
+ */
+function cmdDump(userName) {
+    log_debug("📊 Commande dump → " + userName);
+    sendCommand(userName, {
+        _type  : "cmd",
+        action : "dump"
+    });
+}
+
+/**
+ * 🗺️  setWaypoints — Envoie/met à jour des zones géographiques
+ *
+ * Permet d'ajouter ou modifier des zones (waypoints) sur le
+ * téléphone à distance, sans intervention manuelle.
+ *
+ * @param {string} userName
+ * @param {Array}  waypoints - Tableau d'objets waypoint OwnTracks
+ *
+ * Exemple de waypoint :
+ * {
+ *   _type : "waypoint",
+ *   desc  : "Maison",          // Nom de la zone
+ *   lat   : 48.8566,           // Latitude centre
+ *   lon   : 2.3522,            // Longitude centre
+ *   rad   : 100,               // Rayon en mètres
+ *   tst   : 1700000000         // Timestamp (epoch) — utiliser Date.now()/1000
+ * }
+ */
+function cmdSetWaypoints(userName, waypoints) {
+    if (!Array.isArray(waypoints) || waypoints.length === 0) {
+        log_error("cmdSetWaypoints : tableau de waypoints invalide ou vide");
+        return;
+    }
+    log_debug("🗺️  Commande setWaypoints → " + userName + " (" + waypoints.length + " zones)");
+    sendCommand(userName, {
+        _type     : "cmd",
+        action    : "setWaypoints",
+        waypoints : {
+            _type     : "waypoints",
+            waypoints : waypoints
+        }
+    });
+}
+
+/**
+ * ⚙️  setConfiguration — Modifie la configuration de l'app à distance
+ *
+ * ⚠️  Utiliser avec précaution — change le comportement de l'app
+ * Voir owntracks/commands.md pour la liste complète des paramètres
+ *
+ * @param {string} userName
+ * @param {object} configParams - Paramètres à modifier
+ *
+ * Exemple : changer le mode de monitoring
+ *   cmdSetConfiguration("Kevin", { monitoring: 2 })
+ *   → 1 = significant change (économie batterie)
+ *   → 2 = move mode (précis, consomme plus)
+ */
+function cmdSetConfiguration(userName, configParams) {
+    log_debug("⚙️  Commande setConfiguration → " + userName);
+    var payload = Object.assign({
+        _type  : "cmd",
+        action : "setConfiguration",
+        configuration : Object.assign({ _type: "configuration" }, configParams)
+    });
+    sendCommand(userName, payload);
+}
+
+// ============================================================
+// 🔗  ÉCOUTE DES ENTRÉES VIRTUELLES LOXONE → COMMANDES
+// ============================================================
+//
+//  Ces on() écoutent des états ioBroker qui sont mis à jour
+//  quand Loxone envoie une valeur via une entrée virtuelle.
+//
+//  Pour que ça fonctionne, il faut :
+//   1. Créer des états ioBroker de type "virtual" (javascript.0.OT_CMD_*)
+//   2. Créer des entrées Loxone → ioBroker via l'adaptateur loxone.0
+//      OU utiliser des scripts ioBroker déclenchés par Loxone
+//
+//  💡 Voir owntracks/commands.md section "Intégration Loxone"
+//
+// ────────────────────────────────────────────────────────────
+
+if (CONFIG.COMMANDS_ENABLED) {
+
+    // ----------------------------------------------------------
+    // 📍 OT_CMD_reportLocation_<userName>
+    // ----------------------------------------------------------
+    // Entrée virtuelle dans Loxone Config :
+    //   Nom : OT_CMD_reportLocation_Kevin
+    //   Envoyer 1 pour déclencher la commande
+    // ----------------------------------------------------------
+    (CONFIG.USERS || []).forEach(function(userName) {
+
+        // Créer l'état ioBroker s'il n'existe pas
+        createState("OT_CMD_reportLocation_" + userName, 0, {
+            name : "Commande: forcer GPS pour " + userName,
+            type : "number", role: "button", read: true, write: true
+        });
+        createState("OT_CMD_reportSteps_" + userName, 0, {
+            name : "Commande: demander podomètre pour " + userName,
+            type : "number", role: "button", read: true, write: true
+        });
+        createState("OT_CMD_restart_" + userName, 0, {
+            name : "Commande: redémarrer OwnTracks pour " + userName,
+            type : "number", role: "button", read: true, write: true
+        });
+        createState("OT_CMD_dump_" + userName, 0, {
+            name : "Commande: dump état pour " + userName,
+            type : "number", role: "button", read: true, write: true
+        });
+
+        // Écoute des états de commande
+        // → Déclenché quand Loxone (ou script) met la valeur à 1
+
+        on({ id: "javascript.0.OT_CMD_reportLocation_" + userName, change: "any" }, function(obj) {
+            if (obj.state.val === 1 || obj.state.val === true) {
+                cmdReportLocation(userName);
+                // Remettre à 0 après déclenchement (bouton)
+                setState("OT_CMD_reportLocation_" + userName, 0, true);
+            }
+        });
+
+        on({ id: "javascript.0.OT_CMD_reportSteps_" + userName, change: "any" }, function(obj) {
+            if (obj.state.val === 1 || obj.state.val === true) {
+                cmdReportSteps(userName);
+                setState("OT_CMD_reportSteps_" + userName, 0, true);
+            }
+        });
+
+        on({ id: "javascript.0.OT_CMD_restart_" + userName, change: "any" }, function(obj) {
+            if (obj.state.val === 1 || obj.state.val === true) {
+                cmdRestart(userName);
+                setState("OT_CMD_restart_" + userName, 0, true);
+            }
+        });
+
+        on({ id: "javascript.0.OT_CMD_dump_" + userName, change: "any" }, function(obj) {
+            if (obj.state.val === 1 || obj.state.val === true) {
+                cmdDump(userName);
+                setState("OT_CMD_dump_" + userName, 0, true);
+            }
+        });
+
+        log_debug("🎮 États de commandes créés pour : " + userName);
+    });
 }
 
 // ============================================================
@@ -232,7 +567,7 @@ function discoverUsers() {
  * Souscrit à TOUS les états ioBroker d'un utilisateur OwnTracks iOS
  * et pousse chaque changement vers Loxone en temps réel.
  *
- * @param {string} userName - DeviceID OwnTracks (ex: "David")
+ * @param {string} userName - DeviceID OwnTracks (ex: "Kevin")
  */
 function watchUser(userName) {
     var base = CONFIG.OWNTRACKS_INSTANCE + ".users." + userName + ".";
@@ -630,11 +965,13 @@ setInterval(function() {
 // 🚀  DÉMARRAGE
 // ============================================================
 
-log("[OwnTracks→Loxone] ✅ Script v2.0 démarré !");
-log("[OwnTracks→Loxone] 🎯 Loxone   : " + CONFIG.LOXONE_IP + ":" + CONFIG.LOXONE_PORT);
+log("[OwnTracks→Loxone] ✅ Script v3.0 démarré !");
+log("[OwnTracks→Loxone] 🎯 Loxone    : " + CONFIG.LOXONE_IP + ":" + CONFIG.LOXONE_PORT);
 log("[OwnTracks→Loxone] 📡 OwnTracks : " + CONFIG.OWNTRACKS_INSTANCE);
 log("[OwnTracks→Loxone] 🏠 Zone HOME : " + ((CONFIG.ZONES && CONFIG.ZONES.HOME) ? CONFIG.ZONES.HOME : "Maison"));
 log("[OwnTracks→Loxone] 📱 Plateforme cible : iOS");
 log("[OwnTracks→Loxone] 👥 Découverte automatique des utilisateurs activée");
+log("[OwnTracks→Loxone] 🔐 Chiffrement : " + (CONFIG.ENCRYPTION_ENABLED ? "ACTIVÉ" : "désactivé"));
+log("[OwnTracks→Loxone] 🎮 Commandes  : " + (CONFIG.COMMANDS_ENABLED ? "ACTIVÉES" : "désactivées"));
 
 discoverUsers();
