@@ -95,7 +95,7 @@
 
 | Paramètre | Valeur pour ioBroker | Description |
 |-----------|----------------------|-------------|
-| **Host** | `192.168.10.20` | IP de ton serveur ioBroker |
+| **Host** | `IOBROKER_IP` | IP de ton serveur ioBroker (voir config.js) |
 | **Port** | `1884` | Port du broker MQTT (mqtt.0) |
 | **WebSockets** | `OFF` | Ne pas activer sauf besoin spécifique |
 | **TLS/SSL** | `OFF` | Désactiver si réseau local (activer si internet) |
@@ -463,10 +463,10 @@ Envoyer une configuration complète au téléphone via MQTT sans y toucher physi
 ```json
 {
     "_type": "configuration",
-    "host": "192.168.10.20",
+    "host": "IOBROKER_IP",
     "port": 1884,
     "username": "owntracks",
-    "password": "VOIR_config.js",
+    "password": "OWNTRACKS_PASS",
     "deviceId": "Kevin",
     "tid": "KE",
     "monitoring": 1,
@@ -635,10 +635,10 @@ Sortie zone  → bascule en mode 2 (Move)
 {
     "_type": "configuration",
 
-    "host"     : "192.168.10.20",
+    "host"     : "IOBROKER_IP",
     "port"     : 1884,
     "username" : "owntracks",
-    "password" : "VOIR_config.js",
+    "password" : "OWNTRACKS_PASS",
     "deviceId" : "Kevin",
     "tid"      : "KE",
 

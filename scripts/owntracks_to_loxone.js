@@ -69,15 +69,15 @@
 // Fallback si config.js n'est pas collé avant ce script :
 if (typeof CONFIG === 'undefined') {
     var CONFIG = {
-        LOXONE_IP            : "192.168.10.20",
+        LOXONE_IP            : "LOXONE_IP",
         LOXONE_PORT          : 80,
-        LOXONE_USER          : "admin",
-        LOXONE_PASS          : "VOIR_config.js",
+        LOXONE_USER          : "LOXONE_USER",
+        LOXONE_PASS          : "LOXONE_PASS",
         OWNTRACKS_INSTANCE   : "owntracks.0",
-        MQTT_BROKER_IP       : "192.168.10.20",
+        MQTT_BROKER_IP       : "MQTT_BROKER_IP",
         MQTT_BROKER_PORT     : 1884,
         MQTT_USER            : "owntracks",
-        MQTT_PASS            : "VOIR_config.js",
+        MQTT_PASS            : "MQTT_PASS",
         ENCRYPTION_ENABLED   : false,
         ENCRYPTION_KEY       : "",
         COMMANDS_ENABLED     : true,

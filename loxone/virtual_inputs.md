@@ -7,7 +7,7 @@ pour recevoir l'intégralité des données OwnTracks iOS depuis ioBroker.
 
 Le script pousse les données via :
 ```
-http://admin:***@192.168.10.20/dev/sps/io/<NOM_ENTREE>/<VALEUR>
+http://LOXONE_USER:LOXONE_PASS@LOXONE_IP/dev/sps/io/<NOM_ENTREE>/<VALEUR>
 ```
 
 ---
