@@ -63,30 +63,13 @@
 // ============================================================
 // ⚙️  CONFIGURATION — CHARGÉE DEPUIS config.js
 // ============================================================
-// ⚠️  NE PAS METTRE DE MOTS DE PASSE OU D'IPs ICI !
-// Toutes les valeurs sont dans config.js (non publié sur GitHub)
+// ⚠️  Ce script nécessite que config.js soit collé AVANT lui
+//     dans l'éditeur ioBroker (les deux fichiers forment un seul script).
 //
-// Fallback si config.js n'est pas collé avant ce script :
-if (typeof CONFIG === 'undefined') {
-    var CONFIG = {
-        LOXONE_IP            : "LOXONE_IP",
-        LOXONE_PORT          : 80,
-        LOXONE_USER          : "LOXONE_USER",
-        LOXONE_PASS          : "LOXONE_PASS",
-        OWNTRACKS_INSTANCE   : "owntracks.0",
-        MQTT_BROKER_IP       : "MQTT_BROKER_IP",
-        MQTT_BROKER_PORT     : 1884,
-        MQTT_USER            : "owntracks",
-        MQTT_PASS            : "MQTT_PASS",
-        ENCRYPTION_ENABLED   : false,
-        ENCRYPTION_KEY       : "",
-        COMMANDS_ENABLED     : true,
-        DEVICES              : {},
-        ZONES                : { HOME: "Maison" },
-        POLLING_INTERVAL_MS  : 30000,
-        DEBUG                : true,
-    };
-}
+// Ordre dans l'éditeur ioBroker :
+//   1. Contenu de config.js   ← EN PREMIER
+//   2. Contenu de ce fichier  ← EN DESSOUS
+// ============================================================
 
 // ============================================================
 // 📦  RÉFÉRENCE COMPLÈTE — DONNÉES iOS OwnTracks
