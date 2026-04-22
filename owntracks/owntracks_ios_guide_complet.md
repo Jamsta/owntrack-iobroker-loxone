@@ -96,7 +96,7 @@
 | Paramètre | Valeur pour ioBroker | Description |
 |-----------|----------------------|-------------|
 | **Host** | `192.168.10.20` | IP de ton serveur ioBroker |
-| **Port** | `1883` | Port de l'adaptateur owntracks.0 |
+| **Port** | `1884` | Port du broker MQTT (mqtt.0) |
 | **WebSockets** | `OFF` | Ne pas activer sauf besoin spécifique |
 | **TLS/SSL** | `OFF` | Désactiver si réseau local (activer si internet) |
 
@@ -107,11 +107,12 @@
 | Paramètre | Valeur | Description |
 |-----------|--------|-------------|
 | **Username** | `owntracks` | Identifiant configuré dans l'adaptateur ioBroker |
-| **Password** | `DUNEKEja061185**` | Mot de passe configuré dans ioBroker |
-| **Device ID** | `David` ou `Carole` | ⚠️ NOM EXACT → préfixe des entrées Loxone (`OT_David_...`) |
-| **Tracker ID** | `DA` ou `CA` | 2 initiales affichées sur la carte |
+| **Password** | `voir config.js` | Mot de passe configuré dans ioBroker |
+| **Device ID** | `Kevin`, `David` ou `Carole` | ⚠️ NOM EXACT → préfixe des entrées Loxone (`OT_Kevin_...`) |
+| **Tracker ID** | `KE`, `DA` ou `CA` | 2 initiales affichées sur la carte |
 
 > ⚠️ **Device ID est CRITIQUE** : il détermine le nom des états ioBroker et des entrées Loxone.
+> - Kevin → états `owntracks.0.users.Kevin.*` → Loxone `OT_Kevin_*`
 > - David → états `owntracks.0.users.David.*` → Loxone `OT_David_*`
 > - Carole → états `owntracks.0.users.Carole.*` → Loxone `OT_Carole_*`
 
@@ -463,11 +464,11 @@ Envoyer une configuration complète au téléphone via MQTT sans y toucher physi
 {
     "_type": "configuration",
     "host": "192.168.10.20",
-    "port": 1883,
+    "port": 1884,
     "username": "owntracks",
-    "password": "DUNEKEja061185**",
-    "deviceId": "David",
-    "tid": "DA",
+    "password": "VOIR_config.js",
+    "deviceId": "Kevin",
+    "tid": "KE",
     "monitoring": 1,
     "extendedData": true,
     "locatorDisplacement": 100,
@@ -635,11 +636,11 @@ Sortie zone  → bascule en mode 2 (Move)
     "_type": "configuration",
 
     "host"     : "192.168.10.20",
-    "port"     : 1883,
+    "port"     : 1884,
     "username" : "owntracks",
-    "password" : "DUNEKEja061185**",
-    "deviceId" : "David",
-    "tid"      : "DA",
+    "password" : "VOIR_config.js",
+    "deviceId" : "Kevin",
+    "tid"      : "KE",
 
     "monitoring"          : 1,
     "extendedData"        : true,
@@ -680,7 +681,7 @@ Sortie zone  → bascule en mode 2 (Move)
 - [ ] **Extended Data = ON** (pour avoir connexion/WiFi/pression)
 - [ ] **Localisation = Toujours** dans les réglages iPhone
 - [ ] **Mouvement & Fitness autorisé** pour OwnTracks (pour les pas)
-- [ ] **Device ID = David** (ou Carole) — PAS d'espace, respect de la casse
+- [ ] **Device ID = Kevin** (ou David, ou Carole) — PAS d'espace, respect de la casse
 - [ ] **Zone "Maison"** créée avec radius > 0
 - [ ] **Zone "+follow"** créée avec radius > 0
 - [ ] **Connexion MQTT vérifiée** : `ⓘ → Status → Connected`
@@ -688,4 +689,4 @@ Sortie zone  → bascule en mode 2 (Move)
 
 ---
 
-*Document généré le 2026-04-22 — Installation David (ioBroker + Loxone + OwnTracks iOS)*
+*Document généré le 2026-04-22 — Installation Kevin / David / Carole (ioBroker + Loxone + OwnTracks iOS)*
