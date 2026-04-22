@@ -70,11 +70,15 @@ const CONFIG = {
     //
     COMMANDS_ENABLED : true,             // true = activer les commandes
     //
-    // DeviceID de chaque utilisateur (doit correspondre à l'app OwnTracks)
-    // Settings → (compte) → Device ID
+    // ✅ DEVICEID AUTOMATIQUE :
+    // Le script lit owntracks.0.users.<NOM>.topic pour détecter
+    // le DeviceID dès la première position reçue du téléphone.
+    // → DEVICES est un fallback optionnel (avant la première connexion)
+    //
+    // ⚙️  DEVICES (optionnel — fallback uniquement) :
     DEVICES : {
-        "Prenom1" : "iPhone",   // Topic: owntracks/Prenom1/iPhone/cmd
-        "Prenom2" : "iPhone",   // Topic: owntracks/Prenom2/iPhone/cmd
+        "Prenom1" : "iPhone",   // fallback avant auto-détection
+        "Prenom2" : "iPhone",   // fallback avant auto-détection
         // "Prenom3" : "iPhone", // ← Décommenter pour ajouter un utilisateur
     },
 

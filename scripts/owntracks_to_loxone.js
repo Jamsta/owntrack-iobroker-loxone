@@ -267,21 +267,69 @@ if (CONFIG.ENCRYPTION_ENABLED) {
 //
 //  L'app OwnTracks sur le téléphone reçoit la commande et agit.
 //
+//  DÉTECTION AUTOMATIQUE DU DEVICEID :
+//  ------------------------------------
+//  Le DeviceID est extrait automatiquement depuis le champ
+//  owntracks.0.users.<NOM>.topic qui contient :
+//    "owntracks/Kevin/iPhone"  → deviceId = "iPhone"
+//
+//  Ordre de priorité :
+//    1. detectedDevices[userName]  (lu depuis topic ioBroker — automatique)
+//    2. CONFIG.DEVICES[userName]   (manuel dans config.js — fallback)
+//    3. "iPhone"                   (valeur par défaut ultime)
+//
 //  PRÉREQUIS :
 //  -----------
 //  L'adaptateur mqtt.0 doit être actif (port 1884)
-//  Les DEVICES doivent être configurés dans config.js
 //
 // ============================================================
+
+// Table des DeviceIDs détectés automatiquement depuis le champ topic
+// Alimentée par watchUser() dès la première réception du champ topic
+var detectedDevices = {};
+
+/**
+ * Extrait et mémorise le DeviceID depuis owntracks.0.users.<NOM>.topic
+ * Appelé automatiquement dans watchUser() à chaque mise à jour du topic
+ *
+ * topic format : "owntracks/<userName>/<deviceId>"
+ *
+ * @param {string} userName
+ * @param {string} topicValue  - ex: "owntracks/Kevin/iPhone"
+ */
+function updateDeviceId(userName, topicValue) {
+    if (!topicValue) return;
+    var parts    = topicValue.split("/");
+    // topic = owntracks / Kevin / iPhone  →  parts[2] = deviceId
+    var deviceId = (parts.length >= 3) ? parts[2] : null;
+    if (deviceId && detectedDevices[userName] !== deviceId) {
+        detectedDevices[userName] = deviceId;
+        log_debug("📱 DeviceID détecté automatiquement : " + userName + " → " + deviceId);
+    }
+}
+
+/**
+ * Résout le DeviceID d'un utilisateur
+ * Priorité : auto-détecté > config.js DEVICES > fallback "iPhone"
+ *
+ * @param {string} userName
+ * @returns {string}
+ */
+function resolveDeviceId(userName) {
+    if (detectedDevices[userName]) {
+        return detectedDevices[userName];   // ✅ détecté automatiquement
+    }
+    if (CONFIG.DEVICES && CONFIG.DEVICES[userName]) {
+        return CONFIG.DEVICES[userName];    // fallback config.js
+    }
+    return "iPhone";                        // fallback ultime
+}
 
 /**
  * Envoie une commande MQTT vers un téléphone OwnTracks
  *
  * @param {string} userName  - Nom de l'utilisateur (ex: "Kevin")
  * @param {object} payload   - Objet JSON de la commande OwnTracks
- *
- * Exemple :
- *   sendCommand("Kevin", { _type: "cmd", action: "reportLocation" })
  */
 function sendCommand(userName, payload) {
     if (!CONFIG.COMMANDS_ENABLED) {
@@ -289,17 +337,12 @@ function sendCommand(userName, payload) {
         return;
     }
 
-    var deviceId = (CONFIG.DEVICES && CONFIG.DEVICES[userName])
-                   ? CONFIG.DEVICES[userName]
-                   : "iPhone";
-
-    var topic   = "owntracks/" + userName + "/" + deviceId + "/cmd";
-    var message = JSON.stringify(payload);
+    var deviceId = resolveDeviceId(userName);
+    var topic    = "owntracks/" + userName + "/" + deviceId + "/cmd";
+    var message  = JSON.stringify(payload);
 
     log_debug("📤 Commande → " + userName + " [" + topic + "] : " + message);
 
-    // Publication via l'adaptateur mqtt.0 d'ioBroker
-    // sendTo() est l'API ioBroker pour envoyer à un adaptateur
     sendTo("mqtt.0", "sendMessage2Client", {
         topic   : topic,
         message : message
@@ -307,7 +350,7 @@ function sendCommand(userName, payload) {
         if (result && result.error) {
             log_error("Commande échouée pour " + userName + " : " + result.error);
         } else {
-            log_debug("✅ Commande envoyée à " + userName);
+            log_debug("✅ Commande envoyée à " + userName + " (deviceId: " + deviceId + ")");
         }
     });
 }
@@ -759,8 +802,13 @@ function watchUser(userName) {
     });
 
     // Topic MQTT source (string) — présent dans les payloads HTTP
+    // ⚡ Utilisé aussi pour détecter automatiquement le DeviceID
+    // Format : "owntracks/<userName>/<deviceId>"  ex: "owntracks/Kevin/iPhone"
     on({ id: base + "topic", change: "any" }, function(obj) {
-        sendToLoxone(loxoneName(userName, "topic"), obj.state.val || "");
+        var topicVal = obj.state.val || "";
+        sendToLoxone(loxoneName(userName, "topic"), topicVal);
+        // Extraction automatique du DeviceID pour les commandes
+        updateDeviceId(userName, topicVal);
     });
 
     // ==========================================================
@@ -921,6 +969,10 @@ function pushAllValues(userName) {
             if (field === "lastSeen") {
                 var elapsed = state.val ? Math.floor(Date.now() / 1000) - state.val : 0;
                 sendToLoxone(loxoneName(userName, "lastSeenElapsed"), elapsed);
+            }
+            // Extraction DeviceID depuis le topic au push initial
+            if (field === "topic") {
+                updateDeviceId(userName, state.val);
             }
         });
     });

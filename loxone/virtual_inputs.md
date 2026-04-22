@@ -25,7 +25,12 @@ http://LOXONE_USER:LOXONE_PASS@LOXONE_IP/dev/sps/io/<NOM_ENTREE>/<VALEUR>
 
 ## Entrées à créer — PAR UTILISATEUR
 
-Remplace `<USER>` par : `David`, `Carole`, `Kevin`...
+Remplace `<USER>` par : `Kevin`, `David`, `Carole`...
+
+> ✅ **DeviceID automatique** : le script détecte le DeviceID (`iPhone`, `GalaxyS24`…)
+> depuis le champ `topic` ioBroker — aucune configuration manuelle dans `config.js`.
+> Les entrées virtuelles Loxone ne changent pas : elles utilisent toujours le `username`
+> (`Kevin`, `David`, `Carole`) — le DeviceID est invisible pour Loxone.
 
 ---
 
@@ -157,7 +162,54 @@ Remplace `<USER>` par : `David`, `Carole`, `Kevin`...
 
 ## Récapitulatif — Liste complète pour copier/coller
 
-### Pour David (44 entrées)
+### Pour Kevin (44 entrées)
+
+```
+OT_Kevin_latitude
+OT_Kevin_longitude
+OT_Kevin_accuracy
+OT_Kevin_altitude
+OT_Kevin_verticalAccuracy
+OT_Kevin_velocity
+OT_Kevin_course
+OT_Kevin_pressure
+OT_Kevin_battery
+OT_Kevin_batteryStatus
+OT_Kevin_timestamp
+OT_Kevin_created_at
+OT_Kevin_datetime
+OT_Kevin_connection
+OT_Kevin_connectionInt
+OT_Kevin_ssid
+OT_Kevin_bssid
+OT_Kevin_inregions
+OT_Kevin_inrids
+OT_Kevin_isHome
+OT_Kevin_regionRadius
+OT_Kevin_motionactivities
+OT_Kevin_monitoringMode
+OT_Kevin_trigger
+OT_Kevin_poi
+OT_Kevin_tag
+OT_Kevin_trackerID
+OT_Kevin_topic
+OT_Kevin_lastTransitionEvent
+OT_Kevin_lastTransitionEventInt
+OT_Kevin_lastTransitionRegion
+OT_Kevin_lastTransitionRegionId
+OT_Kevin_lastTransitionLat
+OT_Kevin_lastTransitionLon
+OT_Kevin_lastTransitionAcc
+OT_Kevin_lastTransitionTst
+OT_Kevin_lastTransitionTrigger
+OT_Kevin_steps
+OT_Kevin_stepsFrom
+OT_Kevin_stepsTo
+OT_Kevin_lastSeen
+OT_Kevin_lastSeenElapsed
+```
+
+### Pour David (identique, préfixe OT_David_)
 
 ```
 OT_David_latitude
@@ -251,8 +303,8 @@ OT_Carole_lastSeen
 OT_Carole_lastSeenElapsed
 ```
 
-> ✅ Pour un futur utilisateur (ex: Kevin) : dupliquer la liste en remplaçant
-> `David` par `Kevin`. Le script les alimentera automatiquement.
+> ✅ Pour un futur utilisateur : dupliquer la liste en remplaçant le prénom.
+> Le script l'alimentera automatiquement dès la première connexion.
 
 ---
 

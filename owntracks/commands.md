@@ -52,26 +52,28 @@ owntracks.0 → ioBroker → Loxone (données mises à jour)
 | Élément | Valeur / Exigence |
 |---|---|
 | Adaptateur MQTT | `mqtt.0` actif sur port **1884** |
-| Adaptateur OwnTracks | `owntracks.0` actif sur port **1883** |
-| Script principal | `owntracks_to_loxone.js` v3.0+ |
+| Adaptateur OwnTracks | `owntracks.0` actif sur port **1884** |
+| Script principal | `owntracks_to_loxone.js` v4.0+ |
 | `COMMANDS_ENABLED` | `true` dans `config.js` |
-| `DEVICES` | Renseigné dans `config.js` (DeviceID par utilisateur) |
+| `DEVICES` | ✅ **Optionnel** — détecté automatiquement depuis le champ `topic` |
 | ioBroker JS adapter | ≥ v5.0 (pour `sendTo()` avec callback) |
 
-### DeviceID OwnTracks
+### DeviceID OwnTracks — Détection automatique ✅
 
-Le DeviceID est configuré dans l'app OwnTracks :  
-`Settings → (compte) → Device ID`
+Depuis la v4.0, **le DeviceID est détecté automatiquement** : le script lit le champ
+`owntracks.0.users.<NOM>.topic` qui contient `owntracks/Kevin/iPhone` et en extrait
+`iPhone` sans aucune configuration manuelle.
 
-Il doit correspondre exactement à la valeur dans `config.js → DEVICES` :
+**Ordre de priorité dans le script :**
 
-```javascript
-DEVICES : {
-    "Kevin"  : "iPhone",   // Topic: owntracks/Kevin/iPhone/cmd
-    "David"  : "iPhone",   // Topic: owntracks/David/iPhone/cmd
-    "Carole" : "iPhone",   // Topic: owntracks/Carole/iPhone/cmd
-},
-```
+| Priorité | Source | Quand utilisé |
+|---|---|---|
+| 1 | `detectedDevices[userName]` | Dès la 1ère position reçue — automatique ✅ |
+| 2 | `CONFIG.DEVICES[userName]` | Fallback config.js (avant 1ère connexion) |
+| 3 | `"iPhone"` | Fallback ultime si rien d'autre |
+
+`DEVICES` dans `config.js` reste utile **uniquement** si tu veux envoyer une commande
+before que le téléphone ait envoyé sa première position (ex: tout premier démarrage).
 
 ---
 
