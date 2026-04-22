@@ -7,6 +7,10 @@
 # Fichier de config avec mots de passe et IPs réelles
 config.js
 
+# Dossier deploy — fichier fusionné prêt à coller dans ioBroker
+# Contient config.js (données sensibles) + script principal
+deploy/
+
 # ============================================================
 # Fichiers système et éditeurs
 # ============================================================

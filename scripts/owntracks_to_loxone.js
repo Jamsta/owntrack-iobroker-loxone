@@ -2,7 +2,7 @@
  * ============================================================
  *  SCRIPT : owntracks_to_loxone.js
  *  AUTEUR : Kevin (config) + GenSpark AI (génération)
- *  VERSION: 3.0.0
+ *  VERSION: 4.0.0
  *  DATE   : 2026-04-22
  * ============================================================
  *
@@ -1004,7 +1004,7 @@ setInterval(function() {
 // 🚀  DÉMARRAGE
 // ============================================================
 
-log("[OwnTracks→Loxone] ✅ Script v3.0 démarré !");
+log("[OwnTracks→Loxone] ✅ Script v4.0 démarré !");
 log("[OwnTracks→Loxone] 🎯 Loxone    : " + CONFIG.LOXONE_IP + ":" + CONFIG.LOXONE_PORT);
 log("[OwnTracks→Loxone] 📡 OwnTracks : " + CONFIG.OWNTRACKS_INSTANCE);
 log("[OwnTracks→Loxone] 🏠 Zone HOME : " + ((CONFIG.ZONES && CONFIG.ZONES.HOME) ? CONFIG.ZONES.HOME : "Maison"));
