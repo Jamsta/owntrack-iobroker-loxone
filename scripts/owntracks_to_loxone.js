@@ -2,7 +2,7 @@
  * ============================================================
  *  SCRIPT : owntracks_to_loxone.js
  *  AUTEUR : Kevin (config) + GenSpark AI (génération)
- *  VERSION: 5.1.0
+ *  VERSION: 5.2.0
  *  DATE   : 2026-04-23
  * ============================================================
  *
@@ -370,10 +370,26 @@ function processPayload(userName, rawJson) {
                 : data.inregions;
             sendToLoxone(loxoneName(userName, "inregions"), regions);
 
-            // isHome calculé depuis CONFIG.ZONES.HOME
+            // Nombre de zones actives
+            var regionCount = Array.isArray(data.inregions) ? data.inregions.length : 0;
+            sendToLoxone(loxoneName(userName, "inregionsCount"), regionCount);
+
+            // isHome — zone maison (CONFIG.ZONES.HOME)
             var homeZone = (CONFIG.ZONES && CONFIG.ZONES.HOME) ? CONFIG.ZONES.HOME : "Maison";
             var isHome   = (Array.isArray(data.inregions) && data.inregions.indexOf(homeZone) !== -1) ? 1 : 0;
             sendToLoxone(loxoneName(userName, "isHome"), isHome);
+
+            // isWork — zone travail (CONFIG.ZONES.WORK) — optionnel
+            if (CONFIG.ZONES && CONFIG.ZONES.WORK) {
+                var isWork = (Array.isArray(data.inregions) && data.inregions.indexOf(CONFIG.ZONES.WORK) !== -1) ? 1 : 0;
+                sendToLoxone(loxoneName(userName, "isWork"), isWork);
+            }
+
+            // Zone active courante (première de la liste, ou vide)
+            var currentZone = (Array.isArray(data.inregions) && data.inregions.length > 0)
+                ? data.inregions[0]
+                : "";
+            sendToLoxone(loxoneName(userName, "currentZone"), currentZone);
         }
         if (data.inrids !== undefined) {
             sendToLoxone(loxoneName(userName, "inrids"),
@@ -609,7 +625,7 @@ setInterval(function() {
 // 🚀  DÉMARRAGE
 // ============================================================
 
-log("[OwnTracks→Loxone] ✅ Script v5.1 démarré !", "info");
+log("[OwnTracks→Loxone] ✅ Script v5.2 démarré !", "info");
 log("[OwnTracks→Loxone] 🎯 Loxone    : " + CONFIG.LOXONE_IP + ":" + CONFIG.LOXONE_PORT, "info");
 log("[OwnTracks→Loxone] 📡 Source    : mqtt.0 (JSON brut — tous les champs iOS)", "info");
 log("[OwnTracks→Loxone] 🏠 Zone HOME : " + ((CONFIG.ZONES && CONFIG.ZONES.HOME) ? CONFIG.ZONES.HOME : "Maison"), "info");
