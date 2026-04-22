@@ -267,49 +267,32 @@ if (CONFIG.ENCRYPTION_ENABLED) {
 //
 // ============================================================
 
-// Topics de commande détectés automatiquement depuis owntracks.0.users.<NOM>.topic
-// Format stocké : "owntracks/owntracks/kevin" → topic cmd = "owntracks/owntracks/kevin/cmd"
-var detectedDevices = {};
-
 /**
- * Extrait et mémorise le topic de base depuis owntracks.0.users.<NOM>.topic
- * Appelé automatiquement dans watchUser() à chaque mise à jour du topic
+ * Construit le topic de commande MQTT pour un utilisateur
  *
- * topic format : "owntracks/<mqttUser>/<deviceId>"
- * ex: "owntracks/owntracks/kevin" → cmdTopic = "owntracks/owntracks/kevin/cmd"
+ * Le topic suit le pubTopicBase de l'app OwnTracks :
+ *   owntracks/<MQTT_USER>/<DeviceID>/cmd
+ *
+ * MQTT_USER = CONFIG.OWNTRACKS_USER ("owntracks")
+ * DeviceID  = CONFIG.DEVICES[userName] ou userName par défaut
+ *
+ * Exemple : owntracks/owntracks/kevin/cmd
  *
  * @param {string} userName
- * @param {string} topicValue  - ex: "owntracks/owntracks/kevin"
- */
-function updateDeviceId(userName, topicValue) {
-    if (!topicValue) return;
-    // On stocke le topic complet (sans /cmd) pour construire le topic de commande
-    if (detectedDevices[userName] !== topicValue) {
-        detectedDevices[userName] = topicValue;
-        log_debug("📱 Topic détecté automatiquement : " + userName + " → " + topicValue + "/cmd");
-    }
-}
-
-/**
- * Résout le topic de commande d'un utilisateur
- * Priorité : auto-détecté (depuis topic ioBroker) > fallback config.js DEVICES
- *
- * @param {string} userName
- * @returns {string}  topic complet ex: "owntracks/owntracks/kevin"
+ * @returns {string} topic de commande complet
  */
 function resolveDeviceId(userName) {
-    if (detectedDevices[userName]) {
-        // Topic complet détecté automatiquement ex: "owntracks/owntracks/kevin"
-        return detectedDevices[userName];
-    }
-    // Fallback : construire depuis config.js DEVICES
-    // ex: DEVICES["kevin"] = "kevin" → "owntracks/owntracks/kevin"
-    if (CONFIG.DEVICES && CONFIG.DEVICES[userName]) {
-        return "owntracks/owntracks/" + CONFIG.DEVICES[userName];
-    }
-    // Fallback ultime
-    return "owntracks/owntracks/" + userName;
+    // DeviceID depuis config.js DEVICES ou userName par défaut
+    var deviceId = (CONFIG.DEVICES && CONFIG.DEVICES[userName])
+        ? CONFIG.DEVICES[userName]
+        : userName;
+    // MQTT_USER = le UserID configuré dans l'app (ex: "owntracks")
+    var mqttUser = CONFIG.OWNTRACKS_USER || "owntracks";
+    return "owntracks/" + mqttUser + "/" + deviceId;
 }
+
+// Conservé pour compatibilité — non utilisé car owntracks.0 n'expose pas le champ topic
+function updateDeviceId(userName, topicValue) { /* no-op */ }
 
 /**
  * Envoie une commande MQTT vers un téléphone OwnTracks
