@@ -91,9 +91,9 @@ git clone https://github.com/Jamsta/owntrack-iobroker-loxone.git
 cd owntrack-iobroker-loxone
 ```
 
-### 2. Créer ta configuration locale
+### 2. Remplir ta configuration
 
-Copier `config.js` → dans un dossier local hors GitHub et renseigner tes valeurs réelles :
+Ouvrir `config.js` et remplacer les placeholders par tes vraies valeurs :
 
 ```javascript
 const CONFIG = {
@@ -127,8 +127,8 @@ const CONFIG = {
 };
 ```
 
-> ⚠️ Ton `config.js` local (avec tes vraies valeurs) doit être ajouté dans `.gitignore`
-> pour ne **jamais** être publié sur GitHub.
+> 💡 Une fois rempli avec tes vraies valeurs, **ne committe jamais** ce fichier sur GitHub.
+> Garde une copie de sauvegarde hors du dossier git (ex: `Documents/config_owntracks.js`).
 
 ### 3. Générer le script ioBroker
 
@@ -167,7 +167,8 @@ node build.js
 # 3. Dans ioBroker : Ctrl+A → Supprimer → Coller deploy/owntracks_complet.js → Save → Restart
 ```
 
-> ✅ `config.js` (avec tes données) ne change pas lors d'un `git pull` — il est ignoré par git.
+> ⚠️ `config.js` **est suivi par git** — un `git pull` peut écraser tes valeurs locales.
+> Toujours sauvegarder ton `config.js` rempli avant de faire un `git pull`.
 
 ---
 
@@ -348,14 +349,18 @@ Le script calcule automatiquement :
 
 | Fichier | Sur GitHub | Contenu |
 |---|---|---|
-| `config.js` (ce repo) | ✅ Oui — **placeholders uniquement** | Modèle vide à copier |
-| `config.js` **local** (ton PC) | ❌ Non — dans `.gitignore` | Tes vraies IPs et mots de passe |
+| `config.js` | ✅ Oui — **placeholders uniquement** | Modèle public, aucune donnée réelle |
+| `deploy/` | ❌ Non — dans `.gitignore` | Généré localement par `node build.js` |
 
-**Workflow sécurisé :**
+**Workflow :**
 1. Clone le repo → `config.js` contient des placeholders
-2. Remplis les valeurs dans ton `config.js` local
-3. `git pull` met à jour le script → ton `config.js` n'est pas touché (ignoré par git)
-4. `node build.js` fusionne les deux → `deploy/owntracks_complet.js`
+2. Remplis tes vraies valeurs directement dans `config.js` **localement**
+3. `node build.js` génère `deploy/owntracks_complet.js`
+4. `git pull` met à jour le script → ton `config.js` local **est écrasé** (voir note ci-dessous)
+
+> ⚠️ **Important** : si tu as modifié ton `config.js` local avec tes vraies valeurs,
+> **sauvegarde-le avant un `git pull`** car il sera remplacé par la version placeholder du repo.
+> Astuce : garde une copie dans un dossier hors du repo (ex: `Documents/config_owntracks.js`).
 
 ---
 

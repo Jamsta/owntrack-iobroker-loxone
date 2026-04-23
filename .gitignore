@@ -1,14 +1,9 @@
-# Fichiers à ne JAMAIS committer sur GitHub
+# Fichiers à ne pas committer sur GitHub
 
 # ============================================================
-# ⚠️  CONFIGURATION SENSIBLE — DONNÉES PERSONNELLES
-# ============================================================
-
-# Fichier de config avec mots de passe et IPs réelles
-config.js
-
 # Dossier deploy — fichier fusionné prêt à coller dans ioBroker
-# Contient config.js (données sensibles) + script principal
+# Généré localement par node build.js — inutile sur GitHub
+# ============================================================
 deploy/
 
 # ============================================================

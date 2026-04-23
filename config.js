@@ -1,15 +1,20 @@
 /**
  * ============================================================
- *  FICHIER : config.example.js
- *  ✅  FICHIER PUBLIC — SAFE À PARTAGER / COMMITTER SUR GITHUB
+ *  FICHIER : config.js
+ *  PROJET  : OwnTracks → ioBroker → Loxone
+ *  VERSION : 5.4
  * ============================================================
  *
- *  Modèle de configuration pour le projet OwnTracks → ioBroker → Loxone
+ *  INSTRUCTIONS
+ *  ------------
+ *  1. Cloner le dépôt → ce fichier contient des PLACEHOLDERS
+ *  2. Remplacer toutes les valeurs PLACEHOLDER par tes vraies
+ *     IPs, identifiants et mots de passe
+ *  3. Lancer : node build.js
+ *  4. Coller deploy/owntracks_complet.js dans ioBroker
  *
- *  INSTRUCTIONS :
- *  1. Copier ce fichier et le renommer en "config.js"
- *  2. Remplir toutes les valeurs avec tes propres paramètres
- *  3. Ne jamais committer config.js sur GitHub (déjà dans .gitignore)
+ *  ⚠️  NE JAMAIS committer ce fichier une fois rempli avec
+ *  tes données réelles — ajouter config.js dans .gitignore
  *
  * ============================================================
  */
@@ -20,104 +25,100 @@ const CONFIG = {
     // 🏠  LOXONE MINISERVER
     // ----------------------------------------------------------
     LOXONE_IP   : "LOXONE_IP",           // IP du Loxone Miniserver (ex: 192.168.1.100)
-    LOXONE_PORT : 80,                     // Port HTTP (80 par défaut)
+    LOXONE_PORT : 80,                    // Port HTTP (80 par défaut)
     LOXONE_USER : "LOXONE_USER",         // Utilisateur Loxone Config
     LOXONE_PASS : "LOXONE_PASS",         // Mot de passe Loxone
 
     // ----------------------------------------------------------
     // 🖥️  iBROKER — SERVEUR
     // ----------------------------------------------------------
-    IOBROKER_IP   : "IOBROKER_IP",       // IP du serveur ioBroker (ex: 192.168.1.100)
-    IOBROKER_PORT : 8081,                 // Port interface Admin ioBroker
+    IOBROKER_IP   : "IOBROKER_IP",      // IP du serveur ioBroker (ex: 192.168.1.100)
+    IOBROKER_PORT : 8081,               // Port interface Admin ioBroker
 
     // ----------------------------------------------------------
-    // 📡  ADAPTATEUR OWNTRACKS (MQTT interne ioBroker)
+    // 📡  OWNTRACKS — identifiants MQTT
     // ----------------------------------------------------------
-    OWNTRACKS_INSTANCE  : "owntracks.0", // Instance de l'adaptateur (ne pas changer)
-    OWNTRACKS_MQTT_PORT : 1883,          // Port MQTT de l'adaptateur owntracks.0
-    OWNTRACKS_USER      : "owntracks",   // Utilisateur MQTT OwnTracks
-    OWNTRACKS_PASS      : "OWNTRACKS_PASS", // Mot de passe MQTT OwnTracks
+    // UserID et mot de passe configurés dans l'app OwnTracks
+    // (Settings → Connection → Authentication)
+    OWNTRACKS_USER : "owntracks",       // UserID MQTT (même dans l'app)
+    OWNTRACKS_PASS : "OWNTRACKS_PASS",  // Mot de passe MQTT OwnTracks
 
     // ----------------------------------------------------------
     // 📡  ADAPTATEUR MQTT (broker mqtt.0 — port séparé)
     // ----------------------------------------------------------
-    MQTT_BROKER_IP   : "MQTT_BROKER_IP", // IP du broker MQTT (souvent même IP qu'ioBroker)
-    MQTT_BROKER_PORT : 1884,             // Port du broker mqtt.0
-    MQTT_USER        : "owntracks",      // Utilisateur broker MQTT
-    MQTT_PASS        : "MQTT_PASS",      // Mot de passe broker MQTT
+    MQTT_BROKER_IP   : "MQTT_BROKER_IP", // IP du broker MQTT (souvent même machine qu'ioBroker)
+    MQTT_BROKER_PORT : 1884,            // Port du broker mqtt.0
+    MQTT_USER        : "owntracks",     // Utilisateur broker MQTT
+    MQTT_PASS        : "MQTT_PASS",     // Mot de passe broker MQTT
 
     // ----------------------------------------------------------
-    // 🔐  CHIFFREMENT OWNTRACKS (libsodium secretbox)
+    // 🔐  CHIFFREMENT OWNTRACKS (optionnel — libsodium secretbox)
     // ----------------------------------------------------------
-    // Active le chiffrement de bout en bout entre l'app et ioBroker.
-    // La clé doit être identique dans l'app OwnTracks et dans l'adaptateur owntracks.0.
+    // Active le chiffrement bout-en-bout entre l'app et ioBroker.
+    // La clé doit être identique dans l'app (Settings → Encryption)
+    // et dans ce fichier. Max 32 caractères.
     //
-    // ⚙️  Activation :
-    //   1. ioBroker → owntracks.0 → Config → "Encryption key" → saisir la clé
-    //   2. iPhone OwnTracks → Settings → Encryption → même clé
-    //   3. Passer ENCRYPTION_ENABLED à true ici
-    //
-    // ⚠️  Clé max 32 caractères — même clé sur TOUS les appareils
-    //
-    ENCRYPTION_ENABLED : false,           // true = activer le chiffrement
-    ENCRYPTION_KEY     : "",             // Clé secrète (max 32 caractères)
+    ENCRYPTION_ENABLED : false,         // true = activer le chiffrement
+    ENCRYPTION_KEY     : "",            // Clé secrète (max 32 caractères)
 
     // ----------------------------------------------------------
     // 📤  COMMANDES BIDIRECTIONNELLES (ioBroker → Téléphone)
     // ----------------------------------------------------------
-    // Permet d'envoyer des commandes vers les iPhones via MQTT.
-    // Voir owntracks/commands.md pour la documentation complète.
+    // Permet d'envoyer des commandes depuis ioBroker/Loxone
+    // vers les téléphones OwnTracks via MQTT.
     //
-    COMMANDS_ENABLED : true,             // true = activer les commandes
+    // ⚙️  Commandes disponibles :
+    //   reportLocation  → Forcer une mise à jour GPS immédiate
+    //   reportSteps     → Demander le nombre de pas
+    //   setWaypoints    → Envoyer/mettre à jour des zones géo
+    //   setConfiguration → Modifier la config de l'app à distance
+    //   restart         → Redémarrer l'app OwnTracks
+    //   dump            → Demander un rapport complet de l'état
     //
-    // ✅ DEVICEID AUTOMATIQUE :
-    // Le script lit owntracks.0.users.<NOM>.topic pour détecter
-    // le DeviceID dès la première position reçue du téléphone.
-    // → DEVICES est un fallback optionnel (avant la première connexion)
+    // 💡 Voir owntracks/commands.md pour la documentation complète
     //
-    // ⚙️  DEVICES (optionnel — fallback uniquement) :
+    COMMANDS_ENABLED : true,            // true = activer les commandes
+    //
+    // DEVICES : DeviceID configuré dans l'app OwnTracks (Settings → DeviceID)
+    // Doit correspondre exactement, en minuscules.
     DEVICES : {
-        "prenom1" : "prenom1",   // DeviceID = identique au UserID MQTT (en minuscules)
-        "prenom2" : "prenom2",   // DeviceID = identique au UserID MQTT (en minuscules)
-        // "prenom3" : "prenom3", // ← Décommenter pour ajouter un utilisateur
+        "kevin"  : "kevin",   // DeviceID = kevin
+        "carole" : "carole",  // DeviceID = carole
+        // "david" : "david", // ← Ajouter quand l'iPhone de David sera configuré
     },
 
     // ----------------------------------------------------------
     // 👥  UTILISATEURS OWNTRACKS
     // ----------------------------------------------------------
-    // DeviceID configuré dans l'app OwnTracks sur chaque téléphone.
-    // Ces noms servent de préfixe aux entrées virtuelles Loxone.
-    // Ex : OT_Prenom1_latitude, OT_Prenom2_battery
-    //
-    // ✅ DÉTECTION AUTOMATIQUE : tout nouveau téléphone qui se connecte
-    //    est détecté et ajouté automatiquement — pas besoin de modifier
-    //    ce tableau pour les nouveaux utilisateurs.
-    // 💡 Ce tableau sert uniquement à créer les états de commandes
-    //    au démarrage du script pour les utilisateurs connus.
+    // DeviceID de chaque téléphone — sert de préfixe aux entrées Loxone
+    // Ex : OT_kevin_latitude, OT_carole_battery
     USERS : [
-        "prenom1",    // Téléphone de la personne 1 (doit correspondre au DeviceID dans l'app)
-        "prenom2",    // Téléphone de la personne 2 (doit correspondre au DeviceID dans l'app)
-        // "prenom3", // ← Décommenter pour ajouter un utilisateur connu
+        "kevin",   // Téléphone de Kevin
+        "carole",  // Téléphone de Carole
+        // "david", // ← Décommenter quand l'iPhone de David sera configuré
     ],
 
     // ----------------------------------------------------------
     // 📍  ZONES GÉOGRAPHIQUES (Waypoints OwnTracks)
     // ----------------------------------------------------------
-    // Noms EXACTS des zones configurées dans l'app OwnTracks.
-    //
-    // ⚠️  Ces noms sont UNIQUEMENT utilisés pour calculer isHome, isWork, etc.
-    //     Les zones elles-mêmes sont créées MANUELLEMENT dans l'app OwnTracks
-    //     (ou envoyées via la commande cmdSetWaypoints — voir commands.md).
-    //     Elles ne sont PAS créées automatiquement par ce script.
+    // Noms EXACTS des zones configurées dans l'app OwnTracks
+    // Utilisés pour calculer isHome, isWork, etc.
     ZONES : {
-        HOME : "Maison",    // ← Nom exact de ta zone "maison" dans OwnTracks
-        // WORK : "Bureau", // ← Décommenter si tu crées une zone bureau
+        HOME : "Maison",         // ← Nom exact de la zone "maison" dans OwnTracks
+        WORK : "Ecole Gustave",  // ← Nom exact de la zone "travail" dans OwnTracks
+        // Ajouter d'autres zones ici si besoin
     },
 
     // ----------------------------------------------------------
     // ⚙️  PARAMÈTRES DU SCRIPT
     // ----------------------------------------------------------
-    POLLING_INTERVAL_MS : 30000,   // Polling de sécurité en ms (30000 = 30 secondes)
-    DEBUG               : true,    // true = logs détaillés dans ioBroker / false = silencieux
+    POLLING_INTERVAL_MS : 30000,   // Polling de sécurité (30 secondes)
+    DEBUG               : true,    // true = logs détaillés dans ioBroker
 
 };
+
+// ─────────────────────────────────────────────────────────────
+// NE PAS MODIFIER SOUS CETTE LIGNE
+// ─────────────────────────────────────────────────────────────
+// Export pour utilisation dans owntracks_to_loxone.js
+// (en environnement ioBroker, les variables sont accessibles directement)
