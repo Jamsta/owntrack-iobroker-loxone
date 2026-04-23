@@ -1,0 +1,886 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>OwnTracks → Loxone — Générateur de Virtual Inputs</title>
+  <style>
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+      background: #0f1117;
+      color: #e2e8f0;
+      min-height: 100vh;
+      padding: 40px 20px;
+    }
+
+    .container {
+      max-width: 860px;
+      margin: 0 auto;
+    }
+
+    /* ── Header ─────────────────────────────────────────── */
+    header {
+      text-align: center;
+      margin-bottom: 48px;
+    }
+    header .logo {
+      font-size: 48px;
+      margin-bottom: 12px;
+    }
+    header h1 {
+      font-size: 28px;
+      font-weight: 700;
+      color: #f8fafc;
+      margin-bottom: 8px;
+    }
+    header p {
+      color: #94a3b8;
+      font-size: 16px;
+    }
+    header .version {
+      display: inline-block;
+      margin-top: 10px;
+      background: #1e293b;
+      border: 1px solid #334155;
+      border-radius: 20px;
+      padding: 4px 14px;
+      font-size: 13px;
+      color: #64748b;
+    }
+
+    /* ── Card ────────────────────────────────────────────── */
+    .card {
+      background: #1e293b;
+      border: 1px solid #334155;
+      border-radius: 16px;
+      padding: 32px;
+      margin-bottom: 24px;
+    }
+    .card h2 {
+      font-size: 18px;
+      font-weight: 600;
+      color: #f1f5f9;
+      margin-bottom: 20px;
+      display: flex;
+      align-items: center;
+      gap: 10px;
+    }
+
+    /* ── Input zone ──────────────────────────────────────── */
+    .input-row {
+      display: flex;
+      gap: 12px;
+      flex-wrap: wrap;
+    }
+    .user-input-wrap {
+      position: relative;
+      flex: 1;
+      min-width: 180px;
+    }
+    .user-input-wrap input {
+      width: 100%;
+      background: #0f1117;
+      border: 2px solid #334155;
+      border-radius: 10px;
+      padding: 12px 16px;
+      font-size: 18px;
+      font-weight: 600;
+      color: #f8fafc;
+      outline: none;
+      transition: border-color .2s;
+      letter-spacing: .5px;
+    }
+    .user-input-wrap input:focus {
+      border-color: #6366f1;
+    }
+    .user-input-wrap input::placeholder {
+      color: #475569;
+      font-weight: 400;
+    }
+
+    .btn-add {
+      background: #6366f1;
+      color: #fff;
+      border: none;
+      border-radius: 10px;
+      padding: 12px 24px;
+      font-size: 15px;
+      font-weight: 600;
+      cursor: pointer;
+      transition: background .2s, transform .1s;
+      white-space: nowrap;
+    }
+    .btn-add:hover { background: #4f46e5; }
+    .btn-add:active { transform: scale(.97); }
+
+    /* ── Tags utilisateurs ───────────────────────────────── */
+    .users-tags {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 8px;
+      margin-top: 16px;
+    }
+    .user-tag {
+      display: flex;
+      align-items: center;
+      gap: 6px;
+      background: #0f1117;
+      border: 1px solid #6366f1;
+      border-radius: 20px;
+      padding: 5px 14px 5px 16px;
+      font-size: 14px;
+      font-weight: 600;
+      color: #a5b4fc;
+      animation: popIn .2s ease;
+    }
+    .user-tag button {
+      background: none;
+      border: none;
+      color: #6366f1;
+      cursor: pointer;
+      font-size: 16px;
+      line-height: 1;
+      padding: 0;
+      display: flex;
+      align-items: center;
+      transition: color .15s;
+    }
+    .user-tag button:hover { color: #f87171; }
+
+    @keyframes popIn {
+      from { transform: scale(.8); opacity: 0; }
+      to   { transform: scale(1); opacity: 1; }
+    }
+
+    /* ── Section sélection ───────────────────────────────── */
+    .section-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+      gap: 10px;
+    }
+    .section-toggle {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      background: #0f1117;
+      border: 1px solid #334155;
+      border-radius: 10px;
+      padding: 10px 14px;
+      cursor: pointer;
+      user-select: none;
+      transition: border-color .2s, background .2s;
+    }
+    .section-toggle:hover {
+      border-color: #6366f1;
+      background: #1a2235;
+    }
+    .section-toggle.active {
+      border-color: #6366f1;
+      background: #1e1b4b;
+    }
+    .section-toggle input[type="checkbox"] {
+      accent-color: #6366f1;
+      width: 16px;
+      height: 16px;
+      cursor: pointer;
+    }
+    .section-toggle span {
+      font-size: 13px;
+      color: #cbd5e1;
+    }
+    .section-toggle .emoji {
+      font-size: 16px;
+    }
+
+    /* ── Bouton générer ──────────────────────────────────── */
+    .btn-generate {
+      width: 100%;
+      background: linear-gradient(135deg, #6366f1, #8b5cf6);
+      color: #fff;
+      border: none;
+      border-radius: 12px;
+      padding: 16px;
+      font-size: 17px;
+      font-weight: 700;
+      cursor: pointer;
+      transition: opacity .2s, transform .1s;
+      letter-spacing: .3px;
+    }
+    .btn-generate:hover { opacity: .9; }
+    .btn-generate:active { transform: scale(.99); }
+    .btn-generate:disabled {
+      opacity: .4;
+      cursor: not-allowed;
+    }
+
+    /* ── Résultat ────────────────────────────────────────── */
+    .result-section { display: none; }
+    .result-section.visible { display: block; }
+
+    .result-header {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      flex-wrap: wrap;
+      gap: 10px;
+      margin-bottom: 16px;
+    }
+    .result-header h2 {
+      font-size: 18px;
+      font-weight: 600;
+      color: #f1f5f9;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+    .result-meta {
+      font-size: 13px;
+      color: #64748b;
+    }
+
+    .btn-row {
+      display: flex;
+      gap: 10px;
+      flex-wrap: wrap;
+      margin-bottom: 16px;
+    }
+    .btn-copy, .btn-download {
+      display: flex;
+      align-items: center;
+      gap: 7px;
+      border: none;
+      border-radius: 9px;
+      padding: 10px 18px;
+      font-size: 14px;
+      font-weight: 600;
+      cursor: pointer;
+      transition: opacity .2s, transform .1s;
+    }
+    .btn-copy {
+      background: #0f172a;
+      border: 1px solid #334155;
+      color: #e2e8f0;
+    }
+    .btn-copy:hover { border-color: #6366f1; color: #a5b4fc; }
+    .btn-download {
+      background: #166534;
+      color: #bbf7d0;
+    }
+    .btn-download:hover { opacity: .85; }
+
+    .btn-copy.copied {
+      border-color: #22c55e;
+      color: #86efac;
+    }
+
+    /* ── Tabs utilisateurs dans le résultat ─────────────── */
+    .tabs {
+      display: flex;
+      gap: 6px;
+      flex-wrap: wrap;
+      margin-bottom: 0;
+    }
+    .tab-btn {
+      background: #0f1117;
+      border: 1px solid #334155;
+      border-bottom: none;
+      border-radius: 8px 8px 0 0;
+      padding: 8px 18px;
+      font-size: 14px;
+      font-weight: 600;
+      color: #64748b;
+      cursor: pointer;
+      transition: color .2s, border-color .2s;
+    }
+    .tab-btn.active {
+      border-color: #6366f1;
+      color: #a5b4fc;
+      background: #1e293b;
+    }
+
+    /* ── Zone de code ────────────────────────────────────── */
+    .code-box {
+      background: #0f1117;
+      border: 1px solid #334155;
+      border-radius: 0 10px 10px 10px;
+      padding: 20px;
+      font-family: "Fira Code", "Cascadia Code", Consolas, monospace;
+      font-size: 13px;
+      line-height: 1.8;
+      color: #94a3b8;
+      overflow-x: auto;
+      white-space: pre;
+      max-height: 500px;
+      overflow-y: auto;
+    }
+    .code-box .line-cat {
+      color: #64748b;
+      font-style: italic;
+    }
+    .code-box .line-name {
+      color: #a5b4fc;
+      font-weight: 600;
+    }
+    .code-box .line-sep {
+      color: #334155;
+    }
+
+    /* ── Stats ───────────────────────────────────────────── */
+    .stats-row {
+      display: flex;
+      gap: 12px;
+      flex-wrap: wrap;
+      margin-top: 16px;
+    }
+    .stat-pill {
+      background: #0f1117;
+      border: 1px solid #334155;
+      border-radius: 20px;
+      padding: 6px 14px;
+      font-size: 13px;
+      color: #64748b;
+      display: flex;
+      align-items: center;
+      gap: 6px;
+    }
+    .stat-pill strong { color: #a5b4fc; }
+
+    /* ── Info box ────────────────────────────────────────── */
+    .info-box {
+      background: #0c1a2e;
+      border: 1px solid #1d4ed8;
+      border-radius: 10px;
+      padding: 14px 18px;
+      font-size: 13px;
+      color: #93c5fd;
+      line-height: 1.6;
+      margin-top: 16px;
+    }
+    .info-box strong { color: #bfdbfe; }
+
+    /* ── Footer ──────────────────────────────────────────── */
+    footer {
+      text-align: center;
+      margin-top: 48px;
+      color: #475569;
+      font-size: 13px;
+    }
+    footer a { color: #6366f1; text-decoration: none; }
+    footer a:hover { text-decoration: underline; }
+
+    /* ── Responsive ──────────────────────────────────────── */
+    @media (max-width: 520px) {
+      header h1 { font-size: 22px; }
+      .card { padding: 20px; }
+      .code-box { font-size: 11.5px; }
+    }
+  </style>
+</head>
+<body>
+<div class="container">
+
+  <!-- HEADER -->
+  <header>
+    <div class="logo">🏠</div>
+    <h1>OwnTracks → Loxone</h1>
+    <p>Générateur de Virtual HTTP Inputs</p>
+    <div class="version">v5.5.0 · ioBroker Script</div>
+  </header>
+
+  <!-- ÉTAPE 1 : Utilisateurs -->
+  <div class="card">
+    <h2><span>👤</span> Étape 1 — Ajouter les utilisateurs</h2>
+    <div class="input-row">
+      <div class="user-input-wrap">
+        <input
+          type="text"
+          id="userInput"
+          placeholder="ex: kevin"
+          maxlength="30"
+          autocomplete="off"
+          spellcheck="false"
+        />
+      </div>
+      <button class="btn-add" onclick="addUser()">+ Ajouter</button>
+    </div>
+    <div class="users-tags" id="userTags"></div>
+  </div>
+
+  <!-- ÉTAPE 2 : Sections -->
+  <div class="card">
+    <h2><span>📋</span> Étape 2 — Choisir les sections</h2>
+    <div class="section-grid" id="sectionGrid"></div>
+  </div>
+
+  <!-- BOUTON GÉNÉRER -->
+  <button class="btn-generate" id="btnGenerate" onclick="generate()" disabled>
+    ⚡ Générer la liste des Virtual Inputs
+  </button>
+
+  <!-- RÉSULTAT -->
+  <div class="result-section" id="resultSection">
+    <div class="card" style="margin-top:24px">
+      <div class="result-header">
+        <h2><span>✅</span> Virtual Inputs générés</h2>
+        <span class="result-meta" id="resultMeta"></span>
+      </div>
+
+      <div class="btn-row">
+        <button class="btn-copy" id="btnCopy" onclick="copyAll()">
+          📋 Copier tout
+        </button>
+        <button class="btn-download" onclick="downloadTxt()">
+          💾 Télécharger .txt
+        </button>
+      </div>
+
+      <!-- Tabs par utilisateur -->
+      <div class="tabs" id="resultTabs"></div>
+
+      <!-- Code -->
+      <div class="code-box" id="codeBox"></div>
+
+      <!-- Stats -->
+      <div class="stats-row" id="statsRow"></div>
+
+      <!-- Info -->
+      <div class="info-box">
+        <strong>Comment utiliser dans Loxone Config :</strong><br>
+        Périphériques virtuels → <strong>Ajouter → Entrée HTTP virtuelle</strong><br>
+        Nom : <strong>OT_kevin_latitude</strong> (exactement, sensible à la casse)<br>
+        Commande ON/Analogue : <code>/dev/sps/io/OT_kevin_latitude/&lt;v&gt;</code>
+      </div>
+    </div>
+  </div>
+
+  <footer>
+    <p>
+      Projet open-source ·
+      <a href="https://github.com/Jamsta/owntrack-iobroker-loxone" target="_blank">GitHub</a>
+      · OwnTracks iOS v5.5
+    </p>
+  </footer>
+
+</div>
+
+<script>
+// ══════════════════════════════════════════════════════════════
+//  DONNÉES — toutes les Virtual Inputs par section
+// ══════════════════════════════════════════════════════════════
+const SECTIONS = [
+  {
+    id: "gps",
+    emoji: "📍",
+    label: "Position GPS",
+    fields: [
+      { name: "latitude",         desc: "Latitude GPS" },
+      { name: "longitude",        desc: "Longitude GPS" },
+      { name: "accuracy",         desc: "Précision horizontale (m)" },
+      { name: "altitude",         desc: "Altitude (m)" },
+      { name: "verticalAccuracy", desc: "Précision verticale (m)" },
+      { name: "velocity",         desc: "Vitesse (km/h)" },
+      { name: "course",           desc: "Cap / direction (0-360°)" },
+      { name: "pressure",         desc: "Pression barométrique (kPa)" },
+    ]
+  },
+  {
+    id: "battery",
+    emoji: "🔋",
+    label: "Batterie",
+    fields: [
+      { name: "battery",       desc: "Niveau batterie (%)" },
+      { name: "batteryStatus", desc: "0=inconnu / 1=débranché / 2=charge / 3=plein" },
+    ]
+  },
+  {
+    id: "time",
+    emoji: "⏱️",
+    label: "Horodatage",
+    fields: [
+      { name: "timestamp", desc: "Timestamp UNIX du fix GPS" },
+      { name: "datetime",  desc: "Date/heure lisible (fr-FR)" },
+    ]
+  },
+  {
+    id: "network",
+    emoji: "📶",
+    label: "Connectivité",
+    fields: [
+      { name: "connection",    desc: "\"w\"=WiFi / \"m\"=mobile / \"o\"=offline" },
+      { name: "connectionInt", desc: "0=offline / 1=mobile / 2=WiFi" },
+      { name: "ssid",          desc: "Nom réseau WiFi" },
+      { name: "bssid",         desc: "MAC du point d'accès WiFi" },
+    ]
+  },
+  {
+    id: "zones",
+    emoji: "🗺️",
+    label: "Zones",
+    fields: [
+      { name: "inregions",      desc: "Zones actives JSON ex: [\"Maison\"]" },
+      { name: "inregionsCount", desc: "Nombre de zones actives" },
+      { name: "isHome",         desc: "1 = dans la zone HOME" },
+      { name: "isWork",         desc: "1 = dans la zone WORK" },
+      { name: "currentZone",    desc: "Nom de la zone principale actuelle" },
+      { name: "inrids",         desc: "IDs internes des zones actives" },
+    ]
+  },
+  {
+    id: "motion",
+    emoji: "🚶",
+    label: "Activité",
+    fields: [
+      { name: "motionactivities",     desc: "stationary/walking/running/automotive/cycling" },
+      { name: "motionactivitiescode", desc: "1=stationary / 2=walking / 3=running / 4=automotive / 5=cycling" },
+      { name: "monitoringMode",       desc: "1=significant (éco) / 2=move (précis)" },
+      { name: "trigger",              desc: "p=ping / c=zone / r=cmd / u=manuel / t=timer" },
+      { name: "tag",                  desc: "Nom de la zone actuelle (tag)" },
+    ]
+  },
+  {
+    id: "identity",
+    emoji: "🏷️",
+    label: "Identifiant",
+    fields: [
+      { name: "trackerID", desc: "Initiales (2 caractères, ex: \"KV\")" },
+      { name: "topic",     desc: "Topic MQTT source" },
+    ]
+  },
+  {
+    id: "transitions",
+    emoji: "🔔",
+    label: "Transitions",
+    fields: [
+      { name: "lastTransitionEvent",     desc: "\"enter\" ou \"leave\"" },
+      { name: "lastTransitionEventInt",  desc: "1=enter / 0=leave" },
+      { name: "lastTransitionRegion",    desc: "Nom de la zone concernée" },
+      { name: "lastTransitionRegionId",  desc: "ID interne de la zone" },
+      { name: "lastTransitionLat",       desc: "Latitude à l'événement" },
+      { name: "lastTransitionLon",       desc: "Longitude à l'événement" },
+      { name: "lastTransitionTst",       desc: "Timestamp de l'événement" },
+    ]
+  },
+  {
+    id: "steps",
+    emoji: "👣",
+    label: "Podomètre",
+    fields: [
+      { name: "steps",           desc: "Nombre de pas" },
+      { name: "stepsDistance",   desc: "Distance parcourue (m)" },
+      { name: "stepsFloorsUp",   desc: "Étages montés" },
+      { name: "stepsFloorsDown", desc: "Étages descendus" },
+      { name: "stepsFrom",       desc: "Début période (epoch)" },
+      { name: "stepsTo",         desc: "Fin période (epoch)" },
+      { name: "stepsTst",        desc: "Timestamp rapport podomètre" },
+    ]
+  },
+  {
+    id: "device",
+    emoji: "📱",
+    label: "Infos appareil",
+    fields: [
+      { name: "deviceId",          desc: "DeviceID configuré dans l'app" },
+      { name: "deviceModel",       desc: "Modèle (ex: \"iPhone\")" },
+      { name: "iOSVersion",        desc: "Version iOS" },
+      { name: "appVersion",        desc: "Version OwnTracks" },
+      { name: "locale",            desc: "Locale (ex: fr_FR)" },
+      { name: "gpsAuthorized",     desc: "1 = GPS toujours autorisé" },
+      { name: "backgroundRefresh", desc: "1 = actualisation arrière-plan OK" },
+      { name: "extendedData",      desc: "1 = Extended Data activé" },
+      { name: "cmdEnabled",        desc: "1 = commandes activées" },
+      { name: "waypointsCount",    desc: "Nombre de zones sur le téléphone" },
+    ]
+  },
+  {
+    id: "waypoint",
+    emoji: "📌",
+    label: "Dernier waypoint",
+    fields: [
+      { name: "lastWaypointDesc", desc: "Nom de la zone créée/modifiée" },
+      { name: "lastWaypointLat",  desc: "Latitude" },
+      { name: "lastWaypointLon",  desc: "Longitude" },
+      { name: "lastWaypointRad",  desc: "Rayon (m)" },
+      { name: "lastWaypointRid",  desc: "ID interne de la zone" },
+      { name: "lastWaypointTst",  desc: "Timestamp création/modification" },
+    ]
+  },
+  {
+    id: "lwt",
+    emoji: "📡",
+    label: "Connexion LWT",
+    fields: [
+      { name: "lastSeen",        desc: "Dernier contact (epoch)" },
+      { name: "lastSeenElapsed", desc: "Secondes depuis dernier contact" },
+    ]
+  },
+];
+
+// ══════════════════════════════════════════════════════════════
+//  ÉTAT
+// ══════════════════════════════════════════════════════════════
+let users         = [];
+let activeSection = null;   // onglet actif dans le résultat
+let generatedData = {};     // { user: [{ sectionLabel, fields }] }
+
+// ══════════════════════════════════════════════════════════════
+//  INIT
+// ══════════════════════════════════════════════════════════════
+document.addEventListener("DOMContentLoaded", () => {
+  buildSectionGrid();
+  document.getElementById("userInput").addEventListener("keydown", e => {
+    if (e.key === "Enter") addUser();
+  });
+});
+
+// ══════════════════════════════════════════════════════════════
+//  SECTIONS — construction de la grille
+// ══════════════════════════════════════════════════════════════
+function buildSectionGrid() {
+  const grid = document.getElementById("sectionGrid");
+  grid.innerHTML = "";
+
+  // Boutons "Tout cocher / Tout décocher"
+  const allRow = document.createElement("div");
+  allRow.style.cssText = "grid-column:1/-1; display:flex; gap:8px; margin-bottom:4px;";
+  allRow.innerHTML = `
+    <button onclick="toggleAll(true)"  style="background:#1e293b;border:1px solid #334155;border-radius:8px;padding:6px 14px;font-size:12px;color:#94a3b8;cursor:pointer;">✅ Tout sélectionner</button>
+    <button onclick="toggleAll(false)" style="background:#1e293b;border:1px solid #334155;border-radius:8px;padding:6px 14px;font-size:12px;color:#94a3b8;cursor:pointer;">☐ Tout désélectionner</button>
+  `;
+  grid.appendChild(allRow);
+
+  SECTIONS.forEach(sec => {
+    const label = document.createElement("label");
+    label.className = "section-toggle active";
+    label.innerHTML = `
+      <input type="checkbox" id="sec_${sec.id}" checked onchange="updateToggleStyle(this)">
+      <span class="emoji">${sec.emoji}</span>
+      <span>${sec.label} <span style="color:#475569;font-size:11px;">(${sec.fields.length})</span></span>
+    `;
+    grid.appendChild(label);
+  });
+}
+
+function updateToggleStyle(cb) {
+  const label = cb.closest(".section-toggle");
+  label.classList.toggle("active", cb.checked);
+}
+
+function toggleAll(state) {
+  SECTIONS.forEach(sec => {
+    const cb = document.getElementById("sec_" + sec.id);
+    if (cb) {
+      cb.checked = state;
+      updateToggleStyle(cb);
+    }
+  });
+}
+
+// ══════════════════════════════════════════════════════════════
+//  UTILISATEURS
+// ══════════════════════════════════════════════════════════════
+function addUser() {
+  const input = document.getElementById("userInput");
+  const raw   = input.value.trim().toLowerCase().replace(/[^a-z0-9_-]/g, "");
+  if (!raw) return;
+  if (users.includes(raw)) { flash(input); input.value = ""; return; }
+  users.push(raw);
+  input.value = "";
+  renderTags();
+  updateBtn();
+}
+
+function removeUser(u) {
+  users = users.filter(x => x !== u);
+  renderTags();
+  updateBtn();
+  // Effacer le résultat si plus d'utilisateurs
+  if (users.length === 0) {
+    document.getElementById("resultSection").classList.remove("visible");
+  }
+}
+
+function renderTags() {
+  const wrap = document.getElementById("userTags");
+  wrap.innerHTML = users.map(u => `
+    <div class="user-tag">
+      ${u}
+      <button onclick="removeUser('${u}')" title="Supprimer">✕</button>
+    </div>
+  `).join("");
+}
+
+function flash(el) {
+  el.style.borderColor = "#f87171";
+  setTimeout(() => el.style.borderColor = "", 600);
+}
+
+function updateBtn() {
+  document.getElementById("btnGenerate").disabled = users.length === 0;
+}
+
+// ══════════════════════════════════════════════════════════════
+//  GÉNÉRATION
+// ══════════════════════════════════════════════════════════════
+function getSelectedSections() {
+  return SECTIONS.filter(sec => {
+    const cb = document.getElementById("sec_" + sec.id);
+    return cb && cb.checked;
+  });
+}
+
+function generate() {
+  if (users.length === 0) return;
+  const selected = getSelectedSections();
+  if (selected.length === 0) return;
+
+  generatedData = {};
+  users.forEach(u => {
+    generatedData[u] = selected;
+  });
+
+  // Afficher la section résultat
+  const rs = document.getElementById("resultSection");
+  rs.classList.add("visible");
+
+  // Tabs
+  renderTabs(users[0]);
+
+  // Stats
+  renderStats(selected);
+
+  // Scroll doux
+  setTimeout(() => rs.scrollIntoView({ behavior: "smooth", block: "start" }), 100);
+}
+
+// ══════════════════════════════════════════════════════════════
+//  TABS + CODE
+// ══════════════════════════════════════════════════════════════
+function renderTabs(activeUser) {
+  activeSection = activeUser;
+  const tabsEl = document.getElementById("resultTabs");
+  tabsEl.innerHTML = users.map(u => `
+    <button
+      class="tab-btn ${u === activeUser ? "active" : ""}"
+      onclick="switchTab('${u}')"
+    >${u}</button>
+  `).join("");
+  renderCode(activeUser);
+}
+
+function switchTab(user) {
+  activeSection = user;
+  document.querySelectorAll(".tab-btn").forEach(b => {
+    b.classList.toggle("active", b.textContent === user);
+  });
+  renderCode(user);
+}
+
+function renderCode(user) {
+  const sections = generatedData[user] || [];
+  const totalFields = sections.reduce((s, sec) => s + sec.fields.length, 0);
+
+  // Méta
+  document.getElementById("resultMeta").textContent =
+    `${users.length} utilisateur${users.length > 1 ? "s" : ""} · ${totalFields} entrée${totalFields > 1 ? "s" : ""} par utilisateur`;
+
+  // Code coloré
+  const lines = [];
+  sections.forEach(sec => {
+    lines.push(`<span class="line-sep">── ${sec.emoji} ${sec.label} ${"─".repeat(Math.max(0, 38 - sec.label.length))} (${sec.fields.length})</span>`);
+    sec.fields.forEach(f => {
+      lines.push(`<span class="line-name">OT_${user}_${f.name}</span>`);
+    });
+    lines.push("");
+  });
+
+  document.getElementById("codeBox").innerHTML = lines.join("\n");
+}
+
+// ══════════════════════════════════════════════════════════════
+//  STATS
+// ══════════════════════════════════════════════════════════════
+function renderStats(selected) {
+  const totalPerUser = selected.reduce((s, sec) => s + sec.fields.length, 0);
+  const total        = totalPerUser * users.length;
+
+  document.getElementById("statsRow").innerHTML = `
+    <div class="stat-pill">👤 <strong>${users.length}</strong> utilisateur${users.length > 1 ? "s" : ""}</div>
+    <div class="stat-pill">📋 <strong>${totalPerUser}</strong> entrées / utilisateur</div>
+    <div class="stat-pill">📊 <strong>${total}</strong> entrées au total</div>
+    <div class="stat-pill">📂 <strong>${selected.length}</strong> sections</div>
+  `;
+}
+
+// ══════════════════════════════════════════════════════════════
+//  COPY / DOWNLOAD — toujours TOUS les utilisateurs
+// ══════════════════════════════════════════════════════════════
+function buildPlainText() {
+  const selected = getSelectedSections();
+  const lines = [];
+  const totalPerUser = selected.reduce((s, sec) => s + sec.fields.length, 0);
+
+  lines.push("═══════════════════════════════════════════════════════");
+  lines.push("  OwnTracks → Loxone — Virtual HTTP Inputs");
+  lines.push(`  Généré le ${new Date().toLocaleString("fr-FR")}`);
+  lines.push(`  Script v5.5.0 · ${users.length} utilisateur${users.length > 1 ? "s" : ""} · ${totalPerUser} entrées/utilisateur`);
+  lines.push("═══════════════════════════════════════════════════════");
+
+  users.forEach(user => {
+    lines.push("");
+    lines.push(`┌─────────────────────────────────────────────────────`);
+    lines.push(`│  Utilisateur : ${user.toUpperCase()}`);
+    lines.push(`│  ${totalPerUser} entrées à créer dans Loxone Config`);
+    lines.push(`└─────────────────────────────────────────────────────`);
+    lines.push("");
+
+    selected.forEach(sec => {
+      lines.push(`${sec.emoji}  ${sec.label}`);
+      lines.push("─".repeat(40));
+      sec.fields.forEach(f => {
+        const name = `OT_${user}_${f.name}`;
+        const pad  = Math.max(1, 42 - name.length);
+        lines.push(`${name}${" ".repeat(pad)}# ${f.desc}`);
+      });
+      lines.push("");
+    });
+  });
+
+  lines.push("═══════════════════════════════════════════════════════");
+  lines.push("  Comment créer dans Loxone Config :");
+  lines.push("  Périphériques virtuels → Ajouter → Entrée HTTP virtuelle");
+  lines.push("  Nom          : OT_kevin_latitude");
+  lines.push("  Commande ON  : /dev/sps/io/OT_kevin_latitude/<v>");
+  lines.push("═══════════════════════════════════════════════════════");
+
+  return lines.join("\n");
+}
+
+function copyAll() {
+  const text = buildPlainText();
+  navigator.clipboard.writeText(text).then(() => {
+    const btn = document.getElementById("btnCopy");
+    btn.textContent = "✅ Copié !";
+    btn.classList.add("copied");
+    setTimeout(() => {
+      btn.innerHTML = "📋 Copier tout";
+      btn.classList.remove("copied");
+    }, 2000);
+  });
+}
+
+function downloadTxt() {
+  const text     = buildPlainText();
+  const filename = `OwnTracks_VirtualInputs_${users.join("-")}_${new Date().toISOString().slice(0,10)}.txt`;
+  const blob     = new Blob([text], { type: "text/plain;charset=utf-8" });
+  const url      = URL.createObjectURL(blob);
+  const a        = document.createElement("a");
+  a.href         = url;
+  a.download     = filename;
+  a.click();
+  URL.revokeObjectURL(url);
+}
+</script>
+</body>
+</html>
