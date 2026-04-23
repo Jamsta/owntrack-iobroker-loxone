@@ -81,11 +81,12 @@ http://LOXONE_USER:LOXONE_PASS@LOXONE_IP/dev/sps/io/<NOM_ENTREE>/<VALEUR>
 
 ---
 
-## 🚶 Activité & Mouvement (4 entrées)
+## 🚶 Activité & Mouvement (5 entrées)
 
 | Nom entrée Loxone | Type | Unité | Description |
 |---|---|---|---|
 | `OT_<user>_motionactivities` | Texte | — | stationary / walking / running / automotive / cycling |
+| `OT_<user>_motionactivitiescode` | Analogique | 1-5 | 1=stationary / 2=walking / 3=running / 4=automotive / 5=cycling |
 | `OT_<user>_monitoringMode` | Analogique | 1/2 | 1=significant (éco batterie) / 2=move (précis) |
 | `OT_<user>_trigger` | Texte | — | p=ping / c=zone / r=cmd / u=manuel / t=timer |
 | `OT_<user>_tag` | Texte | — | Nom de la zone actuelle (tag OwnTracks) |
@@ -194,6 +195,7 @@ OT_kevin_isWork
 OT_kevin_currentZone
 OT_kevin_inrids
 OT_kevin_motionactivities
+OT_kevin_motionactivitiescode
 OT_kevin_monitoringMode
 OT_kevin_trigger
 OT_kevin_tag

@@ -2,7 +2,7 @@
  * ============================================================
  *  SCRIPT : owntracks_to_loxone.js
  *  AUTEUR : Kevin (config) + GenSpark AI (génération)
- *  VERSION: 5.4.0
+ *  VERSION: 5.5.0
  *  DATE   : 2026-04-23
  * ============================================================
  *
@@ -398,10 +398,24 @@ function processPayload(userName, rawJson) {
 
         // Activité & Mouvement
         if (data.motionactivities !== undefined) {
-            sendToLoxone(loxoneName(userName, "motionactivities"),
-                Array.isArray(data.motionactivities)
-                    ? data.motionactivities.join(",")
-                    : data.motionactivities);
+            var motionText = Array.isArray(data.motionactivities)
+                ? data.motionactivities.join(",")
+                : data.motionactivities;
+            sendToLoxone(loxoneName(userName, "motionactivities"), motionText);
+
+            // Code numérique : stationary=1, walking=2, running=3, automotive=4, cycling=5
+            var motionCodes = {
+                "stationary"  : 1,
+                "walking"     : 2,
+                "running"     : 3,
+                "automotive"  : 4,
+                "cycling"     : 5
+            };
+            var firstActivity = Array.isArray(data.motionactivities)
+                ? data.motionactivities[0]
+                : data.motionactivities;
+            var motionCode = motionCodes[firstActivity] || 0;
+            sendToLoxone(loxoneName(userName, "motionactivitiescode"), motionCode);
         }
         if (data.m !== undefined) sendToLoxone(loxoneName(userName, "monitoringMode"), data.m);
 

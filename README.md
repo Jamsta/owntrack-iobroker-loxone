@@ -239,6 +239,7 @@ mqtt.0.owntracks.owntracks.kevin.waypoint  ← _type=waypoint  (zones créées/m
 | Variable Loxone | Description | Type |
 |---|---|---|
 | `OT_<user>_motionactivities` | stationary/walking/running/automotive/cycling | string |
+| `OT_<user>_motionactivitiescode` | 1=stationary / 2=walking / 3=running / 4=automotive / 5=cycling | int |
 | `OT_<user>_monitoringMode` | 1=significant (éco) / 2=move (précis) | int |
 | `OT_<user>_trigger` | p=ping / c=zone / r=cmd / u=manuel / t=timer | string |
 | `OT_<user>_tag` | Tag de la zone actuelle | string |
@@ -383,6 +384,7 @@ Projet développé pour une installation domotique **Loxone + ioBroker + OwnTrac
 
 | Version | Date | Description |
 |---|---|---|
+| **5.5.0** | 2026-04-23 | motionactivitiescode — code numérique activité (1=stationary…5=cycling) |
 | **5.4.0** | 2026-04-23 | Filtrage nœuds réservés mqtt.0 — suppression faux utilisateur "owntracks" |
 | **5.3.0** | 2026-04-23 | Surveillance de tous les sous-topics mqtt.0 (dump/status/step/waypoint) |
 | **5.2.0** | 2026-04-23 | isWork, currentZone, inregionsCount |
