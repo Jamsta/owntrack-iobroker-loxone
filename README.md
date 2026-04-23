@@ -1,5 +1,13 @@
 # OwnTracks → ioBroker → Loxone
 
+## 🛠️ Générateur de Virtual Inputs
+
+> **👉 [https://jamsta.github.io/owntrack-iobroker-loxone/](https://jamsta.github.io/owntrack-iobroker-loxone/)**
+>
+> Saisis ton prénom → génère instantanément la liste complète des Virtual HTTP Inputs à créer dans Loxone Config — avec copie presse-papier et téléchargement `.txt`.
+
+---
+
 ## Description
 
 Ce projet fournit un script ioBroker qui récupère **toutes les données brutes**
