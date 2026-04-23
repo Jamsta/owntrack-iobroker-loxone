@@ -12,369 +12,217 @@
       background: #0f1117;
       color: #e2e8f0;
       min-height: 100vh;
-      padding: 40px 20px;
+      padding: 32px 16px;
     }
 
-    .container {
-      max-width: 860px;
-      margin: 0 auto;
+    .container { max-width: 1200px; margin: 0 auto; }
+
+    /* ── Header ── */
+    header { text-align: center; margin-bottom: 40px; }
+    header .logo { font-size: 42px; margin-bottom: 10px; }
+    header h1 { font-size: 26px; font-weight: 700; color: #f8fafc; margin-bottom: 6px; }
+    header p  { color: #94a3b8; font-size: 15px; }
+    .badge {
+      display: inline-block; margin-top: 8px;
+      background: #1e293b; border: 1px solid #334155;
+      border-radius: 20px; padding: 3px 14px;
+      font-size: 12px; color: #64748b;
     }
 
-    /* ── Header ─────────────────────────────────────────── */
-    header {
-      text-align: center;
-      margin-bottom: 48px;
-    }
-    header .logo {
-      font-size: 48px;
-      margin-bottom: 12px;
-    }
-    header h1 {
-      font-size: 28px;
-      font-weight: 700;
-      color: #f8fafc;
-      margin-bottom: 8px;
-    }
-    header p {
-      color: #94a3b8;
-      font-size: 16px;
-    }
-    header .version {
-      display: inline-block;
-      margin-top: 10px;
-      background: #1e293b;
-      border: 1px solid #334155;
-      border-radius: 20px;
-      padding: 4px 14px;
-      font-size: 13px;
-      color: #64748b;
-    }
-
-    /* ── Card ────────────────────────────────────────────── */
+    /* ── Card ── */
     .card {
-      background: #1e293b;
-      border: 1px solid #334155;
-      border-radius: 16px;
-      padding: 32px;
-      margin-bottom: 24px;
+      background: #1e293b; border: 1px solid #334155;
+      border-radius: 14px; padding: 28px; margin-bottom: 20px;
     }
     .card h2 {
-      font-size: 18px;
-      font-weight: 600;
-      color: #f1f5f9;
-      margin-bottom: 20px;
-      display: flex;
-      align-items: center;
-      gap: 10px;
+      font-size: 16px; font-weight: 600; color: #f1f5f9;
+      margin-bottom: 18px; display: flex; align-items: center; gap: 8px;
     }
 
-    /* ── Input zone ──────────────────────────────────────── */
-    .input-row {
-      display: flex;
-      gap: 12px;
-      flex-wrap: wrap;
+    /* ── Input utilisateurs ── */
+    .input-row { display: flex; gap: 10px; flex-wrap: wrap; }
+    .input-row input {
+      flex: 1; min-width: 160px;
+      background: #0f1117; border: 2px solid #334155;
+      border-radius: 9px; padding: 11px 15px;
+      font-size: 16px; font-weight: 600; color: #f8fafc; outline: none;
+      transition: border-color .2s; letter-spacing: .4px;
     }
-    .user-input-wrap {
-      position: relative;
-      flex: 1;
-      min-width: 180px;
-    }
-    .user-input-wrap input {
-      width: 100%;
-      background: #0f1117;
-      border: 2px solid #334155;
-      border-radius: 10px;
-      padding: 12px 16px;
-      font-size: 18px;
-      font-weight: 600;
-      color: #f8fafc;
-      outline: none;
-      transition: border-color .2s;
-      letter-spacing: .5px;
-    }
-    .user-input-wrap input:focus {
-      border-color: #6366f1;
-    }
-    .user-input-wrap input::placeholder {
-      color: #475569;
-      font-weight: 400;
-    }
+    .input-row input:focus { border-color: #6366f1; }
+    .input-row input::placeholder { color: #475569; font-weight: 400; }
 
     .btn-add {
-      background: #6366f1;
-      color: #fff;
-      border: none;
-      border-radius: 10px;
-      padding: 12px 24px;
-      font-size: 15px;
-      font-weight: 600;
-      cursor: pointer;
-      transition: background .2s, transform .1s;
-      white-space: nowrap;
+      background: #6366f1; color: #fff; border: none;
+      border-radius: 9px; padding: 11px 22px;
+      font-size: 14px; font-weight: 600; cursor: pointer;
+      transition: background .2s; white-space: nowrap;
     }
     .btn-add:hover { background: #4f46e5; }
-    .btn-add:active { transform: scale(.97); }
 
-    /* ── Tags utilisateurs ───────────────────────────────── */
-    .users-tags {
-      display: flex;
-      flex-wrap: wrap;
-      gap: 8px;
-      margin-top: 16px;
-    }
+    .users-tags { display: flex; flex-wrap: wrap; gap: 8px; margin-top: 14px; }
     .user-tag {
-      display: flex;
-      align-items: center;
-      gap: 6px;
-      background: #0f1117;
-      border: 1px solid #6366f1;
-      border-radius: 20px;
-      padding: 5px 14px 5px 16px;
-      font-size: 14px;
-      font-weight: 600;
-      color: #a5b4fc;
-      animation: popIn .2s ease;
+      display: flex; align-items: center; gap: 6px;
+      background: #0f1117; border: 1px solid #6366f1;
+      border-radius: 20px; padding: 4px 14px 4px 16px;
+      font-size: 13px; font-weight: 600; color: #a5b4fc;
+      animation: popIn .18s ease;
     }
     .user-tag button {
-      background: none;
-      border: none;
-      color: #6366f1;
-      cursor: pointer;
-      font-size: 16px;
-      line-height: 1;
-      padding: 0;
-      display: flex;
-      align-items: center;
-      transition: color .15s;
+      background: none; border: none; color: #6366f1;
+      cursor: pointer; font-size: 15px; line-height: 1;
+      padding: 0; transition: color .15s;
     }
     .user-tag button:hover { color: #f87171; }
+    @keyframes popIn { from { transform:scale(.8); opacity:0; } to { transform:scale(1); opacity:1; } }
 
-    @keyframes popIn {
-      from { transform: scale(.8); opacity: 0; }
-      to   { transform: scale(1); opacity: 1; }
-    }
-
-    /* ── Section sélection ───────────────────────────────── */
-    .section-grid {
-      display: grid;
-      grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
-      gap: 10px;
-    }
-    .section-toggle {
-      display: flex;
-      align-items: center;
-      gap: 10px;
-      background: #0f1117;
-      border: 1px solid #334155;
-      border-radius: 10px;
-      padding: 10px 14px;
-      cursor: pointer;
-      user-select: none;
-      transition: border-color .2s, background .2s;
-    }
-    .section-toggle:hover {
-      border-color: #6366f1;
-      background: #1a2235;
-    }
-    .section-toggle.active {
-      border-color: #6366f1;
-      background: #1e1b4b;
-    }
-    .section-toggle input[type="checkbox"] {
-      accent-color: #6366f1;
-      width: 16px;
-      height: 16px;
-      cursor: pointer;
-    }
-    .section-toggle span {
-      font-size: 13px;
-      color: #cbd5e1;
-    }
-    .section-toggle .emoji {
-      font-size: 16px;
-    }
-
-    /* ── Bouton générer ──────────────────────────────────── */
+    /* ── Bouton générer ── */
     .btn-generate {
       width: 100%;
       background: linear-gradient(135deg, #6366f1, #8b5cf6);
-      color: #fff;
-      border: none;
-      border-radius: 12px;
-      padding: 16px;
-      font-size: 17px;
-      font-weight: 700;
-      cursor: pointer;
-      transition: opacity .2s, transform .1s;
-      letter-spacing: .3px;
+      color: #fff; border: none; border-radius: 11px;
+      padding: 15px; font-size: 16px; font-weight: 700;
+      cursor: pointer; transition: opacity .2s;
+      margin-bottom: 24px;
     }
     .btn-generate:hover { opacity: .9; }
-    .btn-generate:active { transform: scale(.99); }
-    .btn-generate:disabled {
-      opacity: .4;
-      cursor: not-allowed;
-    }
+    .btn-generate:disabled { opacity: .35; cursor: not-allowed; }
 
-    /* ── Résultat ────────────────────────────────────────── */
+    /* ── Résultat ── */
     .result-section { display: none; }
     .result-section.visible { display: block; }
 
-    .result-header {
-      display: flex;
-      align-items: center;
-      justify-content: space-between;
-      flex-wrap: wrap;
-      gap: 10px;
-      margin-bottom: 16px;
+    /* ── Barre d'actions ── */
+    .action-bar {
+      display: flex; align-items: center; justify-content: space-between;
+      flex-wrap: wrap; gap: 10px; margin-bottom: 16px;
     }
-    .result-header h2 {
-      font-size: 18px;
-      font-weight: 600;
-      color: #f1f5f9;
-      display: flex;
-      align-items: center;
-      gap: 8px;
-    }
-    .result-meta {
-      font-size: 13px;
-      color: #64748b;
-    }
+    .action-bar h2 { font-size: 16px; font-weight: 600; color: #f1f5f9; display: flex; align-items: center; gap: 8px; }
+    .btn-row { display: flex; gap: 8px; flex-wrap: wrap; }
 
-    .btn-row {
-      display: flex;
-      gap: 10px;
-      flex-wrap: wrap;
-      margin-bottom: 16px;
+    .btn-copy, .btn-dl {
+      display: flex; align-items: center; gap: 6px;
+      border-radius: 8px; padding: 8px 16px;
+      font-size: 13px; font-weight: 600; cursor: pointer;
+      border: none; transition: opacity .2s;
     }
-    .btn-copy, .btn-download {
-      display: flex;
-      align-items: center;
-      gap: 7px;
-      border: none;
-      border-radius: 9px;
-      padding: 10px 18px;
-      font-size: 14px;
-      font-weight: 600;
-      cursor: pointer;
-      transition: opacity .2s, transform .1s;
-    }
-    .btn-copy {
-      background: #0f172a;
-      border: 1px solid #334155;
-      color: #e2e8f0;
-    }
+    .btn-copy { background: #1e293b; border: 1px solid #334155; color: #e2e8f0; }
     .btn-copy:hover { border-color: #6366f1; color: #a5b4fc; }
-    .btn-download {
-      background: #166534;
-      color: #bbf7d0;
-    }
-    .btn-download:hover { opacity: .85; }
+    .btn-copy.copied { border-color: #22c55e; color: #86efac; }
+    .btn-dl { background: #14532d; color: #bbf7d0; }
+    .btn-dl:hover { opacity: .85; }
 
-    .btn-copy.copied {
-      border-color: #22c55e;
-      color: #86efac;
-    }
-
-    /* ── Tabs utilisateurs dans le résultat ─────────────── */
-    .tabs {
-      display: flex;
-      gap: 6px;
-      flex-wrap: wrap;
-      margin-bottom: 0;
-    }
+    /* ── Tabs utilisateurs ── */
+    .tabs { display: flex; gap: 5px; flex-wrap: wrap; margin-bottom: 0; }
     .tab-btn {
-      background: #0f1117;
-      border: 1px solid #334155;
-      border-bottom: none;
-      border-radius: 8px 8px 0 0;
-      padding: 8px 18px;
-      font-size: 14px;
-      font-weight: 600;
-      color: #64748b;
-      cursor: pointer;
-      transition: color .2s, border-color .2s;
+      background: #0f1117; border: 1px solid #334155; border-bottom: none;
+      border-radius: 7px 7px 0 0; padding: 7px 18px;
+      font-size: 13px; font-weight: 600; color: #64748b; cursor: pointer;
+      transition: color .2s;
     }
-    .tab-btn.active {
-      border-color: #6366f1;
-      color: #a5b4fc;
-      background: #1e293b;
-    }
+    .tab-btn.active { border-color: #6366f1; color: #a5b4fc; background: #1e293b; }
 
-    /* ── Zone de code ────────────────────────────────────── */
-    .code-box {
-      background: #0f1117;
-      border: 1px solid #334155;
+    /* ── Tableau ── */
+    .table-wrap {
+      background: #0f1117; border: 1px solid #334155;
       border-radius: 0 10px 10px 10px;
-      padding: 20px;
-      font-family: "Fira Code", "Cascadia Code", Consolas, monospace;
-      font-size: 13px;
-      line-height: 1.8;
-      color: #94a3b8;
-      overflow-x: auto;
-      white-space: pre;
-      max-height: 500px;
-      overflow-y: auto;
-    }
-    .code-box .line-cat {
-      color: #64748b;
-      font-style: italic;
-    }
-    .code-box .line-name {
-      color: #a5b4fc;
-      font-weight: 600;
-    }
-    .code-box .line-sep {
-      color: #334155;
+      overflow: auto; max-height: 620px;
     }
 
-    /* ── Stats ───────────────────────────────────────────── */
-    .stats-row {
-      display: flex;
-      gap: 12px;
-      flex-wrap: wrap;
-      margin-top: 16px;
+    table {
+      width: 100%; border-collapse: collapse;
+      font-size: 13px; min-width: 780px;
     }
+
+    thead tr {
+      background: #1a2235; position: sticky; top: 0; z-index: 2;
+    }
+    thead th {
+      padding: 11px 14px; text-align: left;
+      font-size: 11px; font-weight: 700; letter-spacing: .8px;
+      text-transform: uppercase; color: #64748b;
+      border-bottom: 1px solid #334155; white-space: nowrap;
+    }
+
+    tbody tr { border-bottom: 1px solid #1e293b; transition: background .15s; }
+    tbody tr:hover { background: #141d2e; }
+
+    /* Ligne de section */
+    tr.section-row td {
+      background: #161f30; padding: 8px 14px;
+      font-size: 11px; font-weight: 700; letter-spacing: .6px;
+      text-transform: uppercase; color: #475569;
+      border-bottom: 1px solid #1e293b;
+    }
+
+    td { padding: 9px 14px; vertical-align: middle; }
+
+    /* Colonne nom */
+    .td-name {
+      font-family: "Fira Code", Consolas, monospace;
+      font-size: 12.5px; font-weight: 600; color: #a5b4fc;
+      white-space: nowrap;
+    }
+
+    /* Badge type */
+    .badge-type {
+      display: inline-flex; align-items: center; gap: 4px;
+      border-radius: 5px; padding: 3px 9px;
+      font-size: 11px; font-weight: 700; white-space: nowrap;
+    }
+    .badge-analog { background: #1e3a5f; color: #60a5fa; }
+    .badge-text   { background: #1a2e1a; color: #4ade80; }
+
+    /* Unité */
+    .td-unit {
+      font-size: 11px; color: #475569; white-space: nowrap;
+    }
+
+    /* Description */
+    .td-desc { color: #94a3b8; line-height: 1.4; }
+
+    /* Valeurs */
+    .td-values { color: #64748b; font-size: 12px; line-height: 1.5; white-space: nowrap; }
+    .td-values code {
+      background: #1e293b; border-radius: 3px;
+      padding: 1px 5px; font-size: 11px; color: #93c5fd;
+    }
+
+    /* Commande Loxone */
+    .td-cmd {
+      font-family: "Fira Code", Consolas, monospace;
+      font-size: 11px; color: #64748b; white-space: nowrap;
+    }
+    .td-cmd span { color: #a78bfa; }
+
+    /* Stats ── */
+    .stats-row { display: flex; gap: 10px; flex-wrap: wrap; margin-top: 14px; }
     .stat-pill {
-      background: #0f1117;
-      border: 1px solid #334155;
-      border-radius: 20px;
-      padding: 6px 14px;
-      font-size: 13px;
-      color: #64748b;
-      display: flex;
-      align-items: center;
-      gap: 6px;
+      background: #0f1117; border: 1px solid #334155;
+      border-radius: 20px; padding: 5px 14px;
+      font-size: 12px; color: #64748b;
     }
     .stat-pill strong { color: #a5b4fc; }
 
-    /* ── Info box ────────────────────────────────────────── */
+    /* Info box ── */
     .info-box {
-      background: #0c1a2e;
-      border: 1px solid #1d4ed8;
-      border-radius: 10px;
-      padding: 14px 18px;
-      font-size: 13px;
-      color: #93c5fd;
-      line-height: 1.6;
-      margin-top: 16px;
+      background: #0c1a2e; border: 1px solid #1d4ed8;
+      border-radius: 9px; padding: 12px 16px;
+      font-size: 12px; color: #93c5fd; line-height: 1.6; margin-top: 14px;
     }
     .info-box strong { color: #bfdbfe; }
-
-    /* ── Footer ──────────────────────────────────────────── */
-    footer {
-      text-align: center;
-      margin-top: 48px;
-      color: #475569;
-      font-size: 13px;
+    .info-box code {
+      background: #172554; border-radius: 3px;
+      padding: 1px 6px; font-size: 11px;
     }
+
+    /* Footer ── */
+    footer { text-align: center; margin-top: 40px; color: #475569; font-size: 12px; }
     footer a { color: #6366f1; text-decoration: none; }
     footer a:hover { text-decoration: underline; }
 
-    /* ── Responsive ──────────────────────────────────────── */
-    @media (max-width: 520px) {
-      header h1 { font-size: 22px; }
-      .card { padding: 20px; }
-      .code-box { font-size: 11.5px; }
+    @media (max-width: 600px) {
+      header h1 { font-size: 20px; }
+      .card { padding: 18px; }
     }
   </style>
 </head>
@@ -386,498 +234,400 @@
     <div class="logo">🏠</div>
     <h1>OwnTracks → Loxone</h1>
     <p>Générateur de Virtual HTTP Inputs</p>
-    <div class="version">v5.5.0 · ioBroker Script</div>
+    <div class="badge">v5.5.0 · ioBroker Script</div>
   </header>
 
   <!-- ÉTAPE 1 : Utilisateurs -->
   <div class="card">
-    <h2><span>👤</span> Étape 1 — Ajouter les utilisateurs</h2>
+    <h2>👤 Étape 1 — Ajouter les utilisateurs</h2>
     <div class="input-row">
-      <div class="user-input-wrap">
-        <input
-          type="text"
-          id="userInput"
-          placeholder="ex: kevin"
-          maxlength="30"
-          autocomplete="off"
-          spellcheck="false"
-        />
-      </div>
+      <input type="text" id="userInput" placeholder="ex: kevin"
+             maxlength="30" autocomplete="off" spellcheck="false" />
       <button class="btn-add" onclick="addUser()">+ Ajouter</button>
     </div>
     <div class="users-tags" id="userTags"></div>
   </div>
 
-  <!-- ÉTAPE 2 : Sections -->
-  <div class="card">
-    <h2><span>📋</span> Étape 2 — Choisir les sections</h2>
-    <div class="section-grid" id="sectionGrid"></div>
-  </div>
-
   <!-- BOUTON GÉNÉRER -->
   <button class="btn-generate" id="btnGenerate" onclick="generate()" disabled>
-    ⚡ Générer la liste des Virtual Inputs
+    ⚡ Générer le tableau des Virtual Inputs
   </button>
 
   <!-- RÉSULTAT -->
   <div class="result-section" id="resultSection">
-    <div class="card" style="margin-top:24px">
-      <div class="result-header">
-        <h2><span>✅</span> Virtual Inputs générés</h2>
-        <span class="result-meta" id="resultMeta"></span>
+    <div class="card">
+
+      <div class="action-bar">
+        <h2>✅ Virtual Inputs — tableau complet</h2>
+        <div class="btn-row">
+          <button class="btn-copy" id="btnCopy" onclick="copyTxt()">📋 Copier la liste</button>
+          <button class="btn-dl"   onclick="downloadTxt()">💾 Télécharger .txt</button>
+        </div>
       </div>
 
-      <div class="btn-row">
-        <button class="btn-copy" id="btnCopy" onclick="copyAll()">
-          📋 Copier tout
-        </button>
-        <button class="btn-download" onclick="downloadTxt()">
-          💾 Télécharger .txt
-        </button>
-      </div>
-
-      <!-- Tabs par utilisateur -->
+      <!-- Tabs utilisateurs -->
       <div class="tabs" id="resultTabs"></div>
 
-      <!-- Code -->
-      <div class="code-box" id="codeBox"></div>
+      <!-- Tableau -->
+      <div class="table-wrap">
+        <table id="viTable">
+          <thead>
+            <tr>
+              <th>#</th>
+              <th>Nom de l'entrée Loxone</th>
+              <th>Type</th>
+              <th>Unité</th>
+              <th>Description</th>
+              <th>Valeurs possibles</th>
+              <th>Commande Loxone</th>
+            </tr>
+          </thead>
+          <tbody id="tableBody"></tbody>
+        </table>
+      </div>
 
       <!-- Stats -->
       <div class="stats-row" id="statsRow"></div>
 
       <!-- Info -->
       <div class="info-box">
-        <strong>Comment utiliser dans Loxone Config :</strong><br>
+        <strong>Comment créer dans Loxone Config :</strong>
         Périphériques virtuels → <strong>Ajouter → Entrée HTTP virtuelle</strong><br>
-        Nom : <strong>OT_kevin_latitude</strong> (exactement, sensible à la casse)<br>
-        Commande ON/Analogue : <code>/dev/sps/io/OT_kevin_latitude/&lt;v&gt;</code>
+        • <strong>Nom</strong> : copier exactement (sensible à la casse)<br>
+        • <strong>Commande ON/Analogue</strong> : <code>/dev/sps/io/OT_kevin_latitude/&lt;v&gt;</code><br>
+        • Type <span style="color:#60a5fa">■ Analogique</span> → valeur numérique &nbsp;|&nbsp;
+          Type <span style="color:#4ade80">■ Texte</span> → chaîne de caractères
       </div>
+
     </div>
   </div>
 
   <footer>
-    <p>
-      Projet open-source ·
-      <a href="https://github.com/Jamsta/owntrack-iobroker-loxone" target="_blank">GitHub</a>
-      · OwnTracks iOS v5.5
-    </p>
+    Projet open-source ·
+    <a href="https://github.com/Jamsta/owntrack-iobroker-loxone" target="_blank">GitHub</a>
+    · OwnTracks iOS v5.5
   </footer>
 
 </div>
-
 <script>
-// ══════════════════════════════════════════════════════════════
-//  DONNÉES — toutes les Virtual Inputs par section
-// ══════════════════════════════════════════════════════════════
+// ══════════════════════════════════════════════════════════
+//  DONNÉES COMPLÈTES
+// ══════════════════════════════════════════════════════════
 const SECTIONS = [
   {
-    id: "gps",
-    emoji: "📍",
-    label: "Position GPS",
+    label: "📍 Position GPS",
     fields: [
-      { name: "latitude",         desc: "Latitude GPS" },
-      { name: "longitude",        desc: "Longitude GPS" },
-      { name: "accuracy",         desc: "Précision horizontale (m)" },
-      { name: "altitude",         desc: "Altitude (m)" },
-      { name: "verticalAccuracy", desc: "Précision verticale (m)" },
-      { name: "velocity",         desc: "Vitesse (km/h)" },
-      { name: "course",           desc: "Cap / direction (0-360°)" },
-      { name: "pressure",         desc: "Pression barométrique (kPa)" },
+      { name:"latitude",         type:"Analogique", unit:"degrés",  desc:"Latitude GPS",                            values:"ex: 44.7015",        cmd:"/dev/sps/io/OT_{u}_latitude/<v>" },
+      { name:"longitude",        type:"Analogique", unit:"degrés",  desc:"Longitude GPS",                           values:"ex: -0.8464",        cmd:"/dev/sps/io/OT_{u}_longitude/<v>" },
+      { name:"accuracy",         type:"Analogique", unit:"mètres",  desc:"Précision horizontale GPS (↓ = meilleur)",values:"ex: 8",              cmd:"/dev/sps/io/OT_{u}_accuracy/<v>" },
+      { name:"altitude",         type:"Analogique", unit:"mètres",  desc:"Altitude au-dessus du niveau de la mer",  values:"ex: 56",             cmd:"/dev/sps/io/OT_{u}_altitude/<v>" },
+      { name:"verticalAccuracy", type:"Analogique", unit:"mètres",  desc:"Précision verticale de l'altitude (iOS)", values:"ex: 7",              cmd:"/dev/sps/io/OT_{u}_verticalAccuracy/<v>" },
+      { name:"velocity",         type:"Analogique", unit:"km/h",    desc:"Vitesse de déplacement",                  values:"ex: 0 ou 50",        cmd:"/dev/sps/io/OT_{u}_velocity/<v>" },
+      { name:"course",           type:"Analogique", unit:"degrés",  desc:"Cap / direction",                         values:"0 – 360",            cmd:"/dev/sps/io/OT_{u}_course/<v>" },
+      { name:"pressure",         type:"Analogique", unit:"kPa",     desc:"Pression barométrique (extendedData ON)", values:"ex: 101.08",         cmd:"/dev/sps/io/OT_{u}_pressure/<v>" },
     ]
   },
   {
-    id: "battery",
-    emoji: "🔋",
-    label: "Batterie",
+    label: "🔋 Batterie",
     fields: [
-      { name: "battery",       desc: "Niveau batterie (%)" },
-      { name: "batteryStatus", desc: "0=inconnu / 1=débranché / 2=charge / 3=plein" },
+      { name:"battery",       type:"Analogique", unit:"%",    desc:"Niveau de batterie du téléphone",    values:"0 – 100",                              cmd:"/dev/sps/io/OT_{u}_battery/<v>" },
+      { name:"batteryStatus", type:"Analogique", unit:"0-3",  desc:"État de charge de la batterie",      values:"0=inconnu · 1=débranché · 2=charge · 3=plein", cmd:"/dev/sps/io/OT_{u}_batteryStatus/<v>" },
     ]
   },
   {
-    id: "time",
-    emoji: "⏱️",
-    label: "Horodatage",
+    label: "⏱️ Horodatage",
     fields: [
-      { name: "timestamp", desc: "Timestamp UNIX du fix GPS" },
-      { name: "datetime",  desc: "Date/heure lisible (fr-FR)" },
+      { name:"timestamp", type:"Analogique", unit:"epoch",  desc:"Timestamp UNIX du fix GPS",          values:"ex: 1776900149",              cmd:"/dev/sps/io/OT_{u}_timestamp/<v>" },
+      { name:"datetime",  type:"Texte",      unit:"—",      desc:"Date/heure lisible (fr-FR)",         values:"ex: 23/04/2026 14:32:07",     cmd:"/dev/sps/io/OT_{u}_datetime/<v>" },
     ]
   },
   {
-    id: "network",
-    emoji: "📶",
-    label: "Connectivité",
+    label: "📶 Connectivité",
     fields: [
-      { name: "connection",    desc: "\"w\"=WiFi / \"m\"=mobile / \"o\"=offline" },
-      { name: "connectionInt", desc: "0=offline / 1=mobile / 2=WiFi" },
-      { name: "ssid",          desc: "Nom réseau WiFi" },
-      { name: "bssid",         desc: "MAC du point d'accès WiFi" },
+      { name:"connection",    type:"Texte",      unit:"—",     desc:"Type de connexion réseau",          values:"w=WiFi · m=mobile · o=offline", cmd:"/dev/sps/io/OT_{u}_connection/<v>" },
+      { name:"connectionInt", type:"Analogique", unit:"0-2",   desc:"Type de connexion (numérique)",     values:"0=offline · 1=mobile · 2=WiFi", cmd:"/dev/sps/io/OT_{u}_connectionInt/<v>" },
+      { name:"ssid",          type:"Texte",      unit:"—",     desc:"Nom du réseau WiFi (extendedData)", values:"ex: Freebox-Kevin",             cmd:"/dev/sps/io/OT_{u}_ssid/<v>" },
+      { name:"bssid",         type:"Texte",      unit:"—",     desc:"MAC du point d'accès WiFi",         values:"ex: AA:BB:CC:DD:EE:FF",        cmd:"/dev/sps/io/OT_{u}_bssid/<v>" },
     ]
   },
   {
-    id: "zones",
-    emoji: "🗺️",
-    label: "Zones",
+    label: "🗺️ Zones géographiques",
     fields: [
-      { name: "inregions",      desc: "Zones actives JSON ex: [\"Maison\"]" },
-      { name: "inregionsCount", desc: "Nombre de zones actives" },
-      { name: "isHome",         desc: "1 = dans la zone HOME" },
-      { name: "isWork",         desc: "1 = dans la zone WORK" },
-      { name: "currentZone",    desc: "Nom de la zone principale actuelle" },
-      { name: "inrids",         desc: "IDs internes des zones actives" },
+      { name:"inregions",      type:"Texte",      unit:"JSON[]", desc:"Zones actives (tableau JSON)",           values:'ex: ["Maison"]',          cmd:"/dev/sps/io/OT_{u}_inregions/<v>" },
+      { name:"inregionsCount", type:"Analogique", unit:"entier", desc:"Nombre de zones actives simultanément",  values:"0, 1, 2…",               cmd:"/dev/sps/io/OT_{u}_inregionsCount/<v>" },
+      { name:"isHome",         type:"Analogique", unit:"0/1",    desc:"Dans la zone HOME (CONFIG.ZONES.HOME)",  values:"0=absent · 1=présent",   cmd:"/dev/sps/io/OT_{u}_isHome/<v>" },
+      { name:"isWork",         type:"Analogique", unit:"0/1",    desc:"Dans la zone WORK (CONFIG.ZONES.WORK)",  values:"0=absent · 1=présent",   cmd:"/dev/sps/io/OT_{u}_isWork/<v>" },
+      { name:"currentZone",    type:"Texte",      unit:"—",      desc:"Nom de la zone principale actuelle",     values:'ex: "Maison" ou vide',   cmd:"/dev/sps/io/OT_{u}_currentZone/<v>" },
+      { name:"inrids",         type:"Texte",      unit:"JSON[]", desc:"IDs internes des zones actives",         values:'ex: ["681281"]',         cmd:"/dev/sps/io/OT_{u}_inrids/<v>" },
     ]
   },
   {
-    id: "motion",
-    emoji: "🚶",
-    label: "Activité",
+    label: "🚶 Activité & Mouvement",
     fields: [
-      { name: "motionactivities",     desc: "stationary/walking/running/automotive/cycling" },
-      { name: "motionactivitiescode", desc: "1=stationary / 2=walking / 3=running / 4=automotive / 5=cycling" },
-      { name: "monitoringMode",       desc: "1=significant (éco) / 2=move (précis)" },
-      { name: "trigger",              desc: "p=ping / c=zone / r=cmd / u=manuel / t=timer" },
-      { name: "tag",                  desc: "Nom de la zone actuelle (tag)" },
+      { name:"motionactivities",     type:"Texte",      unit:"—",   desc:"Activité détectée (texte)",       values:"stationary · walking · running · automotive · cycling", cmd:"/dev/sps/io/OT_{u}_motionactivities/<v>" },
+      { name:"motionactivitiescode", type:"Analogique", unit:"1-5", desc:"Activité détectée (numérique)",   values:"1=stationary · 2=walking · 3=running · 4=automotive · 5=cycling", cmd:"/dev/sps/io/OT_{u}_motionactivitiescode/<v>" },
+      { name:"monitoringMode",       type:"Analogique", unit:"1/2", desc:"Mode de suivi GPS",               values:"1=significant (éco) · 2=move (précis)", cmd:"/dev/sps/io/OT_{u}_monitoringMode/<v>" },
+      { name:"trigger",              type:"Texte",      unit:"—",   desc:"Déclencheur de l'envoi",          values:"p=ping · c=zone · r=cmd · u=manuel · t=timer", cmd:"/dev/sps/io/OT_{u}_trigger/<v>" },
+      { name:"tag",                  type:"Texte",      unit:"—",   desc:"Nom de la zone actuelle (tag)",   values:'ex: "Maison"',           cmd:"/dev/sps/io/OT_{u}_tag/<v>" },
     ]
   },
   {
-    id: "identity",
-    emoji: "🏷️",
-    label: "Identifiant",
+    label: "🏷️ Identifiant",
     fields: [
-      { name: "trackerID", desc: "Initiales (2 caractères, ex: \"KV\")" },
-      { name: "topic",     desc: "Topic MQTT source" },
+      { name:"trackerID", type:"Texte", unit:"—", desc:"Initiales affichées sur la carte",     values:'ex: "KV"',                        cmd:"/dev/sps/io/OT_{u}_trackerID/<v>" },
+      { name:"topic",     type:"Texte", unit:"—", desc:"Topic MQTT source de la donnée",       values:'ex: owntracks/owntracks/kevin',    cmd:"/dev/sps/io/OT_{u}_topic/<v>" },
     ]
   },
   {
-    id: "transitions",
-    emoji: "🔔",
-    label: "Transitions",
+    label: "🔔 Transitions (entrée/sortie zones)",
     fields: [
-      { name: "lastTransitionEvent",     desc: "\"enter\" ou \"leave\"" },
-      { name: "lastTransitionEventInt",  desc: "1=enter / 0=leave" },
-      { name: "lastTransitionRegion",    desc: "Nom de la zone concernée" },
-      { name: "lastTransitionRegionId",  desc: "ID interne de la zone" },
-      { name: "lastTransitionLat",       desc: "Latitude à l'événement" },
-      { name: "lastTransitionLon",       desc: "Longitude à l'événement" },
-      { name: "lastTransitionTst",       desc: "Timestamp de l'événement" },
+      { name:"lastTransitionEvent",    type:"Texte",      unit:"—",      desc:"Dernier événement de transition",     values:'"enter" ou "leave"',       cmd:"/dev/sps/io/OT_{u}_lastTransitionEvent/<v>" },
+      { name:"lastTransitionEventInt", type:"Analogique", unit:"0/1",    desc:"Dernier événement (numérique)",       values:"1=enter · 0=leave",        cmd:"/dev/sps/io/OT_{u}_lastTransitionEventInt/<v>" },
+      { name:"lastTransitionRegion",   type:"Texte",      unit:"—",      desc:"Nom de la zone concernée",            values:'ex: "Maison"',             cmd:"/dev/sps/io/OT_{u}_lastTransitionRegion/<v>" },
+      { name:"lastTransitionRegionId", type:"Texte",      unit:"—",      desc:"ID interne de la zone",              values:'ex: "681281"',             cmd:"/dev/sps/io/OT_{u}_lastTransitionRegionId/<v>" },
+      { name:"lastTransitionLat",      type:"Analogique", unit:"degrés", desc:"Latitude à l'événement",             values:"ex: 44.7015",              cmd:"/dev/sps/io/OT_{u}_lastTransitionLat/<v>" },
+      { name:"lastTransitionLon",      type:"Analogique", unit:"degrés", desc:"Longitude à l'événement",            values:"ex: -0.8464",              cmd:"/dev/sps/io/OT_{u}_lastTransitionLon/<v>" },
+      { name:"lastTransitionTst",      type:"Analogique", unit:"epoch",  desc:"Timestamp de l'événement",           values:"ex: 1776900149",           cmd:"/dev/sps/io/OT_{u}_lastTransitionTst/<v>" },
     ]
   },
   {
-    id: "steps",
-    emoji: "👣",
-    label: "Podomètre",
+    label: "👣 Podomètre",
     fields: [
-      { name: "steps",           desc: "Nombre de pas" },
-      { name: "stepsDistance",   desc: "Distance parcourue (m)" },
-      { name: "stepsFloorsUp",   desc: "Étages montés" },
-      { name: "stepsFloorsDown", desc: "Étages descendus" },
-      { name: "stepsFrom",       desc: "Début période (epoch)" },
-      { name: "stepsTo",         desc: "Fin période (epoch)" },
-      { name: "stepsTst",        desc: "Timestamp rapport podomètre" },
+      { name:"steps",           type:"Analogique", unit:"pas",    desc:"Nombre de pas",                      values:"ex: 4523",           cmd:"/dev/sps/io/OT_{u}_steps/<v>" },
+      { name:"stepsDistance",   type:"Analogique", unit:"mètres", desc:"Distance parcourue",                 values:"ex: 3120.5",         cmd:"/dev/sps/io/OT_{u}_stepsDistance/<v>" },
+      { name:"stepsFloorsUp",   type:"Analogique", unit:"étages", desc:"Étages montés",                      values:"ex: 2",              cmd:"/dev/sps/io/OT_{u}_stepsFloorsUp/<v>" },
+      { name:"stepsFloorsDown", type:"Analogique", unit:"étages", desc:"Étages descendus",                   values:"ex: 1",              cmd:"/dev/sps/io/OT_{u}_stepsFloorsDown/<v>" },
+      { name:"stepsFrom",       type:"Analogique", unit:"epoch",  desc:"Début de la période mesurée",        values:"ex: 1776895200",     cmd:"/dev/sps/io/OT_{u}_stepsFrom/<v>" },
+      { name:"stepsTo",         type:"Analogique", unit:"epoch",  desc:"Fin de la période mesurée",          values:"ex: 1776898871",     cmd:"/dev/sps/io/OT_{u}_stepsTo/<v>" },
+      { name:"stepsTst",        type:"Analogique", unit:"epoch",  desc:"Timestamp du rapport podomètre",     values:"ex: 1776898871",     cmd:"/dev/sps/io/OT_{u}_stepsTst/<v>" },
     ]
   },
   {
-    id: "device",
-    emoji: "📱",
-    label: "Infos appareil",
+    label: "📱 Infos appareil (dump/status)",
     fields: [
-      { name: "deviceId",          desc: "DeviceID configuré dans l'app" },
-      { name: "deviceModel",       desc: "Modèle (ex: \"iPhone\")" },
-      { name: "iOSVersion",        desc: "Version iOS" },
-      { name: "appVersion",        desc: "Version OwnTracks" },
-      { name: "locale",            desc: "Locale (ex: fr_FR)" },
-      { name: "gpsAuthorized",     desc: "1 = GPS toujours autorisé" },
-      { name: "backgroundRefresh", desc: "1 = actualisation arrière-plan OK" },
-      { name: "extendedData",      desc: "1 = Extended Data activé" },
-      { name: "cmdEnabled",        desc: "1 = commandes activées" },
-      { name: "waypointsCount",    desc: "Nombre de zones sur le téléphone" },
+      { name:"deviceId",          type:"Texte",      unit:"—",      desc:"DeviceID configuré dans l'app",            values:'ex: "kevin"',       cmd:"/dev/sps/io/OT_{u}_deviceId/<v>" },
+      { name:"deviceModel",       type:"Texte",      unit:"—",      desc:"Modèle de l'appareil",                     values:'"iPhone"',          cmd:"/dev/sps/io/OT_{u}_deviceModel/<v>" },
+      { name:"iOSVersion",        type:"Texte",      unit:"—",      desc:"Version iOS",                              values:'ex: "26.4"',        cmd:"/dev/sps/io/OT_{u}_iOSVersion/<v>" },
+      { name:"appVersion",        type:"Texte",      unit:"—",      desc:"Version OwnTracks",                        values:'ex: "26.1.1"',      cmd:"/dev/sps/io/OT_{u}_appVersion/<v>" },
+      { name:"locale",            type:"Texte",      unit:"—",      desc:"Locale de l'appareil",                     values:'ex: "fr_FR"',       cmd:"/dev/sps/io/OT_{u}_locale/<v>" },
+      { name:"gpsAuthorized",     type:"Analogique", unit:"0/1",    desc:"GPS autorisé en permanence",               values:"0=non · 1=oui",     cmd:"/dev/sps/io/OT_{u}_gpsAuthorized/<v>" },
+      { name:"backgroundRefresh", type:"Analogique", unit:"0/1",    desc:"Actualisation arrière-plan active",        values:"0=non · 1=oui",     cmd:"/dev/sps/io/OT_{u}_backgroundRefresh/<v>" },
+      { name:"extendedData",      type:"Analogique", unit:"0/1",    desc:"Extended Data activé dans l'app",          values:"0=non · 1=oui",     cmd:"/dev/sps/io/OT_{u}_extendedData/<v>" },
+      { name:"cmdEnabled",        type:"Analogique", unit:"0/1",    desc:"Commandes activées dans l'app",            values:"0=non · 1=oui",     cmd:"/dev/sps/io/OT_{u}_cmdEnabled/<v>" },
+      { name:"waypointsCount",    type:"Analogique", unit:"entier", desc:"Nombre de zones sur le téléphone",         values:"ex: 2",             cmd:"/dev/sps/io/OT_{u}_waypointsCount/<v>" },
     ]
   },
   {
-    id: "waypoint",
-    emoji: "📌",
-    label: "Dernier waypoint",
+    label: "📌 Dernier waypoint reçu",
     fields: [
-      { name: "lastWaypointDesc", desc: "Nom de la zone créée/modifiée" },
-      { name: "lastWaypointLat",  desc: "Latitude" },
-      { name: "lastWaypointLon",  desc: "Longitude" },
-      { name: "lastWaypointRad",  desc: "Rayon (m)" },
-      { name: "lastWaypointRid",  desc: "ID interne de la zone" },
-      { name: "lastWaypointTst",  desc: "Timestamp création/modification" },
+      { name:"lastWaypointDesc", type:"Texte",      unit:"—",      desc:"Nom de la zone créée/modifiée",     values:'ex: "Maison"',     cmd:"/dev/sps/io/OT_{u}_lastWaypointDesc/<v>" },
+      { name:"lastWaypointLat",  type:"Analogique", unit:"degrés", desc:"Latitude du waypoint",             values:"ex: 44.7015",      cmd:"/dev/sps/io/OT_{u}_lastWaypointLat/<v>" },
+      { name:"lastWaypointLon",  type:"Analogique", unit:"degrés", desc:"Longitude du waypoint",            values:"ex: -0.8464",      cmd:"/dev/sps/io/OT_{u}_lastWaypointLon/<v>" },
+      { name:"lastWaypointRad",  type:"Analogique", unit:"mètres", desc:"Rayon de la zone",                 values:"ex: 50",           cmd:"/dev/sps/io/OT_{u}_lastWaypointRad/<v>" },
+      { name:"lastWaypointRid",  type:"Texte",      unit:"—",      desc:"ID interne du waypoint",           values:'ex: "681281"',     cmd:"/dev/sps/io/OT_{u}_lastWaypointRid/<v>" },
+      { name:"lastWaypointTst",  type:"Analogique", unit:"epoch",  desc:"Timestamp création/modification",  values:"ex: 1776898604",   cmd:"/dev/sps/io/OT_{u}_lastWaypointTst/<v>" },
     ]
   },
   {
-    id: "lwt",
-    emoji: "📡",
-    label: "Connexion LWT",
+    label: "📡 Connexion LWT",
     fields: [
-      { name: "lastSeen",        desc: "Dernier contact (epoch)" },
-      { name: "lastSeenElapsed", desc: "Secondes depuis dernier contact" },
+      { name:"lastSeen",        type:"Analogique", unit:"epoch",   desc:"Timestamp du dernier contact MQTT",       values:"ex: 1776900149", cmd:"/dev/sps/io/OT_{u}_lastSeen/<v>" },
+      { name:"lastSeenElapsed", type:"Analogique", unit:"secondes",desc:"Secondes écoulées depuis dernier contact", values:"ex: 42",         cmd:"/dev/sps/io/OT_{u}_lastSeenElapsed/<v>" },
     ]
   },
 ];
 
-// ══════════════════════════════════════════════════════════════
+// ══════════════════════════════════════════════════════════
 //  ÉTAT
-// ══════════════════════════════════════════════════════════════
-let users         = [];
-let activeSection = null;   // onglet actif dans le résultat
-let generatedData = {};     // { user: [{ sectionLabel, fields }] }
+// ══════════════════════════════════════════════════════════
+let users       = [];
+let activeUser  = null;
 
-// ══════════════════════════════════════════════════════════════
+// ══════════════════════════════════════════════════════════
 //  INIT
-// ══════════════════════════════════════════════════════════════
+// ══════════════════════════════════════════════════════════
 document.addEventListener("DOMContentLoaded", () => {
-  buildSectionGrid();
   document.getElementById("userInput").addEventListener("keydown", e => {
     if (e.key === "Enter") addUser();
   });
 });
 
-// ══════════════════════════════════════════════════════════════
-//  SECTIONS — construction de la grille
-// ══════════════════════════════════════════════════════════════
-function buildSectionGrid() {
-  const grid = document.getElementById("sectionGrid");
-  grid.innerHTML = "";
-
-  // Boutons "Tout cocher / Tout décocher"
-  const allRow = document.createElement("div");
-  allRow.style.cssText = "grid-column:1/-1; display:flex; gap:8px; margin-bottom:4px;";
-  allRow.innerHTML = `
-    <button onclick="toggleAll(true)"  style="background:#1e293b;border:1px solid #334155;border-radius:8px;padding:6px 14px;font-size:12px;color:#94a3b8;cursor:pointer;">✅ Tout sélectionner</button>
-    <button onclick="toggleAll(false)" style="background:#1e293b;border:1px solid #334155;border-radius:8px;padding:6px 14px;font-size:12px;color:#94a3b8;cursor:pointer;">☐ Tout désélectionner</button>
-  `;
-  grid.appendChild(allRow);
-
-  SECTIONS.forEach(sec => {
-    const label = document.createElement("label");
-    label.className = "section-toggle active";
-    label.innerHTML = `
-      <input type="checkbox" id="sec_${sec.id}" checked onchange="updateToggleStyle(this)">
-      <span class="emoji">${sec.emoji}</span>
-      <span>${sec.label} <span style="color:#475569;font-size:11px;">(${sec.fields.length})</span></span>
-    `;
-    grid.appendChild(label);
-  });
-}
-
-function updateToggleStyle(cb) {
-  const label = cb.closest(".section-toggle");
-  label.classList.toggle("active", cb.checked);
-}
-
-function toggleAll(state) {
-  SECTIONS.forEach(sec => {
-    const cb = document.getElementById("sec_" + sec.id);
-    if (cb) {
-      cb.checked = state;
-      updateToggleStyle(cb);
-    }
-  });
-}
-
-// ══════════════════════════════════════════════════════════════
+// ══════════════════════════════════════════════════════════
 //  UTILISATEURS
-// ══════════════════════════════════════════════════════════════
+// ══════════════════════════════════════════════════════════
 function addUser() {
   const input = document.getElementById("userInput");
   const raw   = input.value.trim().toLowerCase().replace(/[^a-z0-9_-]/g, "");
   if (!raw) return;
-  if (users.includes(raw)) { flash(input); input.value = ""; return; }
+  if (users.includes(raw)) { flashRed(input); input.value = ""; return; }
   users.push(raw);
   input.value = "";
   renderTags();
-  updateBtn();
+  document.getElementById("btnGenerate").disabled = false;
 }
 
 function removeUser(u) {
   users = users.filter(x => x !== u);
   renderTags();
-  updateBtn();
-  // Effacer le résultat si plus d'utilisateurs
-  if (users.length === 0) {
-    document.getElementById("resultSection").classList.remove("visible");
-  }
+  document.getElementById("btnGenerate").disabled = users.length === 0;
+  if (users.length === 0) document.getElementById("resultSection").classList.remove("visible");
 }
 
 function renderTags() {
-  const wrap = document.getElementById("userTags");
-  wrap.innerHTML = users.map(u => `
-    <div class="user-tag">
-      ${u}
+  document.getElementById("userTags").innerHTML = users.map(u => `
+    <div class="user-tag">${u}
       <button onclick="removeUser('${u}')" title="Supprimer">✕</button>
-    </div>
-  `).join("");
+    </div>`).join("");
 }
 
-function flash(el) {
+function flashRed(el) {
   el.style.borderColor = "#f87171";
-  setTimeout(() => el.style.borderColor = "", 600);
+  setTimeout(() => el.style.borderColor = "", 700);
 }
 
-function updateBtn() {
-  document.getElementById("btnGenerate").disabled = users.length === 0;
-}
-
-// ══════════════════════════════════════════════════════════════
+// ══════════════════════════════════════════════════════════
 //  GÉNÉRATION
-// ══════════════════════════════════════════════════════════════
-function getSelectedSections() {
-  return SECTIONS.filter(sec => {
-    const cb = document.getElementById("sec_" + sec.id);
-    return cb && cb.checked;
-  });
-}
-
+// ══════════════════════════════════════════════════════════
 function generate() {
-  if (users.length === 0) return;
-  const selected = getSelectedSections();
-  if (selected.length === 0) return;
-
-  generatedData = {};
-  users.forEach(u => {
-    generatedData[u] = selected;
-  });
-
-  // Afficher la section résultat
-  const rs = document.getElementById("resultSection");
-  rs.classList.add("visible");
-
-  // Tabs
-  renderTabs(users[0]);
-
-  // Stats
-  renderStats(selected);
-
-  // Scroll doux
-  setTimeout(() => rs.scrollIntoView({ behavior: "smooth", block: "start" }), 100);
+  if (!users.length) return;
+  activeUser = users[0];
+  document.getElementById("resultSection").classList.add("visible");
+  renderTabs(activeUser);
+  renderStats();
+  setTimeout(() => document.getElementById("resultSection")
+    .scrollIntoView({ behavior: "smooth", block: "start" }), 80);
 }
 
-// ══════════════════════════════════════════════════════════════
-//  TABS + CODE
-// ══════════════════════════════════════════════════════════════
-function renderTabs(activeUser) {
-  activeSection = activeUser;
-  const tabsEl = document.getElementById("resultTabs");
-  tabsEl.innerHTML = users.map(u => `
-    <button
-      class="tab-btn ${u === activeUser ? "active" : ""}"
-      onclick="switchTab('${u}')"
-    >${u}</button>
+// ══════════════════════════════════════════════════════════
+//  TABS
+// ══════════════════════════════════════════════════════════
+function renderTabs(u) {
+  activeUser = u;
+  document.getElementById("resultTabs").innerHTML = users.map(usr => `
+    <button class="tab-btn ${usr === u ? "active" : ""}" onclick="switchTab('${usr}')">${usr}</button>
   `).join("");
-  renderCode(activeUser);
+  renderTable(u);
 }
 
-function switchTab(user) {
-  activeSection = user;
-  document.querySelectorAll(".tab-btn").forEach(b => {
-    b.classList.toggle("active", b.textContent === user);
-  });
-  renderCode(user);
+function switchTab(u) {
+  activeUser = u;
+  document.querySelectorAll(".tab-btn").forEach(b =>
+    b.classList.toggle("active", b.textContent === u));
+  renderTable(u);
 }
 
-function renderCode(user) {
-  const sections = generatedData[user] || [];
-  const totalFields = sections.reduce((s, sec) => s + sec.fields.length, 0);
+// ══════════════════════════════════════════════════════════
+//  TABLEAU
+// ══════════════════════════════════════════════════════════
+function renderTable(user) {
+  const tbody = document.getElementById("tableBody");
+  let rows = "";
+  let idx  = 0;
 
-  // Méta
-  document.getElementById("resultMeta").textContent =
-    `${users.length} utilisateur${users.length > 1 ? "s" : ""} · ${totalFields} entrée${totalFields > 1 ? "s" : ""} par utilisateur`;
+  SECTIONS.forEach(sec => {
+    // Ligne de section
+    rows += `<tr class="section-row"><td colspan="7">${sec.label}</td></tr>`;
 
-  // Code coloré
-  const lines = [];
-  sections.forEach(sec => {
-    lines.push(`<span class="line-sep">── ${sec.emoji} ${sec.label} ${"─".repeat(Math.max(0, 38 - sec.label.length))} (${sec.fields.length})</span>`);
     sec.fields.forEach(f => {
-      lines.push(`<span class="line-name">OT_${user}_${f.name}</span>`);
+      idx++;
+      const fullName = `OT_${user}_${f.name}`;
+      const cmd      = f.cmd.replace(/{u}/g, user);
+      const isText   = f.type === "Texte";
+
+      const typeBadge = isText
+        ? `<span class="badge-type badge-text">■ Texte</span>`
+        : `<span class="badge-type badge-analog">■ Analogique</span>`;
+
+      rows += `
+        <tr>
+          <td style="color:#475569;font-size:11px;text-align:right;padding-right:8px;">${idx}</td>
+          <td class="td-name">${fullName}</td>
+          <td>${typeBadge}</td>
+          <td class="td-unit">${f.unit}</td>
+          <td class="td-desc">${f.desc}</td>
+          <td class="td-values">${f.values}</td>
+          <td class="td-cmd"><span>${cmd}</span></td>
+        </tr>`;
     });
-    lines.push("");
   });
 
-  document.getElementById("codeBox").innerHTML = lines.join("\n");
+  tbody.innerHTML = rows;
 }
 
-// ══════════════════════════════════════════════════════════════
+// ══════════════════════════════════════════════════════════
 //  STATS
-// ══════════════════════════════════════════════════════════════
-function renderStats(selected) {
-  const totalPerUser = selected.reduce((s, sec) => s + sec.fields.length, 0);
-  const total        = totalPerUser * users.length;
+// ══════════════════════════════════════════════════════════
+function renderStats() {
+  const total = SECTIONS.reduce((s, sec) => s + sec.fields.length, 0);
+  const analog = SECTIONS.reduce((s, sec) =>
+    s + sec.fields.filter(f => f.type === "Analogique").length, 0);
+  const text = total - analog;
 
   document.getElementById("statsRow").innerHTML = `
     <div class="stat-pill">👤 <strong>${users.length}</strong> utilisateur${users.length > 1 ? "s" : ""}</div>
-    <div class="stat-pill">📋 <strong>${totalPerUser}</strong> entrées / utilisateur</div>
-    <div class="stat-pill">📊 <strong>${total}</strong> entrées au total</div>
-    <div class="stat-pill">📂 <strong>${selected.length}</strong> sections</div>
+    <div class="stat-pill">📋 <strong>${total}</strong> entrées / utilisateur</div>
+    <div class="stat-pill">📊 <strong>${total * users.length}</strong> entrées au total</div>
+    <div class="stat-pill">■ <strong style="color:#60a5fa">${analog}</strong> analogiques</div>
+    <div class="stat-pill">■ <strong style="color:#4ade80">${text}</strong> texte</div>
   `;
 }
 
-// ══════════════════════════════════════════════════════════════
-//  COPY / DOWNLOAD — toujours TOUS les utilisateurs
-// ══════════════════════════════════════════════════════════════
-function buildPlainText() {
-  const selected = getSelectedSections();
+// ══════════════════════════════════════════════════════════
+//  COPIER / TÉLÉCHARGER — liste simple des noms
+// ══════════════════════════════════════════════════════════
+function buildTxt() {
   const lines = [];
-  const totalPerUser = selected.reduce((s, sec) => s + sec.fields.length, 0);
+  const total = SECTIONS.reduce((s, sec) => s + sec.fields.length, 0);
 
-  lines.push("═══════════════════════════════════════════════════════");
-  lines.push("  OwnTracks → Loxone — Virtual HTTP Inputs");
+  lines.push("═══════════════════════════════════════════════════════════════════════");
+  lines.push("  OwnTracks → Loxone  —  Virtual HTTP Inputs");
   lines.push(`  Généré le ${new Date().toLocaleString("fr-FR")}`);
-  lines.push(`  Script v5.5.0 · ${users.length} utilisateur${users.length > 1 ? "s" : ""} · ${totalPerUser} entrées/utilisateur`);
-  lines.push("═══════════════════════════════════════════════════════");
+  lines.push(`  Script v5.5.0  ·  ${users.length} utilisateur${users.length > 1?"s":""}  ·  ${total} entrées/utilisateur`);
+  lines.push("═══════════════════════════════════════════════════════════════════════");
 
   users.forEach(user => {
     lines.push("");
-    lines.push(`┌─────────────────────────────────────────────────────`);
-    lines.push(`│  Utilisateur : ${user.toUpperCase()}`);
-    lines.push(`│  ${totalPerUser} entrées à créer dans Loxone Config`);
-    lines.push(`└─────────────────────────────────────────────────────`);
+    lines.push(`╔═══════════════════════════════════════════════════════════════════`);
+    lines.push(`║  UTILISATEUR : ${user.toUpperCase()}`);
+    lines.push(`╚═══════════════════════════════════════════════════════════════════`);
     lines.push("");
 
-    selected.forEach(sec => {
-      lines.push(`${sec.emoji}  ${sec.label}`);
-      lines.push("─".repeat(40));
+    SECTIONS.forEach(sec => {
+      lines.push(`${sec.label}`);
+      lines.push("─".repeat(60));
       sec.fields.forEach(f => {
         const name = `OT_${user}_${f.name}`;
-        const pad  = Math.max(1, 42 - name.length);
-        lines.push(`${name}${" ".repeat(pad)}# ${f.desc}`);
+        const pad  = " ".repeat(Math.max(1, 44 - name.length));
+        lines.push(`${name}${pad}[${f.type}]  ${f.unit !== "—" ? f.unit + " · " : ""}${f.desc}`);
       });
       lines.push("");
     });
   });
 
-  lines.push("═══════════════════════════════════════════════════════");
-  lines.push("  Comment créer dans Loxone Config :");
-  lines.push("  Périphériques virtuels → Ajouter → Entrée HTTP virtuelle");
-  lines.push("  Nom          : OT_kevin_latitude");
-  lines.push("  Commande ON  : /dev/sps/io/OT_kevin_latitude/<v>");
-  lines.push("═══════════════════════════════════════════════════════");
+  lines.push("═══════════════════════════════════════════════════════════════════════");
+  lines.push("  LOXONE CONFIG — Périphériques virtuels → Ajouter → Entrée HTTP virtuelle");
+  lines.push("  Nom         : OT_kevin_latitude");
+  lines.push("  Commande ON : /dev/sps/io/OT_kevin_latitude/<v>");
+  lines.push("═══════════════════════════════════════════════════════════════════════");
 
   return lines.join("\n");
 }
 
-function copyAll() {
-  const text = buildPlainText();
-  navigator.clipboard.writeText(text).then(() => {
+function copyTxt() {
+  navigator.clipboard.writeText(buildTxt()).then(() => {
     const btn = document.getElementById("btnCopy");
     btn.textContent = "✅ Copié !";
     btn.classList.add("copied");
-    setTimeout(() => {
-      btn.innerHTML = "📋 Copier tout";
-      btn.classList.remove("copied");
-    }, 2000);
+    setTimeout(() => { btn.innerHTML = "📋 Copier la liste"; btn.classList.remove("copied"); }, 2000);
   });
 }
 
 function downloadTxt() {
-  const text     = buildPlainText();
-  const filename = `OwnTracks_VirtualInputs_${users.join("-")}_${new Date().toISOString().slice(0,10)}.txt`;
-  const blob     = new Blob([text], { type: "text/plain;charset=utf-8" });
-  const url      = URL.createObjectURL(blob);
-  const a        = document.createElement("a");
-  a.href         = url;
-  a.download     = filename;
+  const text = buildTxt();
+  const name = `OwnTracks_VI_${users.join("-")}_${new Date().toISOString().slice(0,10)}.txt`;
+  const blob = new Blob([text], { type: "text/plain;charset=utf-8" });
+  const url  = URL.createObjectURL(blob);
+  const a    = Object.assign(document.createElement("a"), { href: url, download: name });
   a.click();
   URL.revokeObjectURL(url);
 }
