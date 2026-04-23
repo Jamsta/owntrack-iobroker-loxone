@@ -246,8 +246,8 @@ mqtt.0.owntracks.owntracks.kevin.waypoint  ← _type=waypoint  (zones créées/m
 ### 🚶 Activité
 | Variable Loxone | Description | Type |
 |---|---|---|
-| `OT_<user>_motionactivities` | stationary/walking/running/automotive/cycling | string |
-| `OT_<user>_motionactivitiescode` | 1=stationary / 2=walking / 3=running / 4=automotive / 5=cycling | int |
+| `OT_<user>_motionactivities` | immobile / marche / course / véhicule / vélo | string |
+| `OT_<user>_motionactivitiescode` | 1=immobile / 2=marche / 3=course / 4=véhicule / 5=vélo | int |
 | `OT_<user>_monitoringMode` | 1=significant (éco) / 2=move (précis) | int |
 | `OT_<user>_trigger` | p=ping / c=zone / r=cmd / u=manuel / t=timer | string |
 | `OT_<user>_tag` | Tag de la zone actuelle | string |
@@ -392,6 +392,7 @@ Projet développé pour une installation domotique **Loxone + ioBroker + OwnTrac
 
 | Version | Date | Description |
 |---|---|---|
+| **5.7.0** | 2026-04-23 | motionactivities en français + fix motionactivitiescode (string ET tableau) |
 | **5.6.0** | 2026-04-23 | distanceHome (mètres) + distanceHomeKm — distance temps réel depuis la maison |
 | **5.5.0** | 2026-04-23 | motionactivitiescode — code numérique activité (1=stationary…5=cycling) |
 | **5.4.0** | 2026-04-23 | Filtrage nœuds réservés mqtt.0 — suppression faux utilisateur "owntracks" |

@@ -366,8 +366,8 @@ const SECTIONS = [
   {
     label: "🚶 Activité & Mouvement",
     fields: [
-      { name:"motionactivities",     type:"Texte",      unit:"—",   desc:"Activité détectée (texte)",       values:"stationary · walking · running · automotive · cycling", cmd:"/dev/sps/io/OT_{u}_motionactivities/<v>" },
-      { name:"motionactivitiescode", type:"Analogique", unit:"1-5", desc:"Activité détectée (numérique)",   values:"1=stationary · 2=walking · 3=running · 4=automotive · 5=cycling", cmd:"/dev/sps/io/OT_{u}_motionactivitiescode/<v>" },
+      { name:"motionactivities",     type:"Texte",      unit:"—",   desc:"Activité détectée (texte français)",   values:"immobile · marche · course · véhicule · vélo", cmd:"/dev/sps/io/OT_{u}_motionactivities/<v>" },
+      { name:"motionactivitiescode", type:"Analogique", unit:"1-5", desc:"Activité détectée (numérique)",        values:"1=immobile · 2=marche · 3=course · 4=véhicule · 5=vélo", cmd:"/dev/sps/io/OT_{u}_motionactivitiescode/<v>" },
       { name:"monitoringMode",       type:"Analogique", unit:"1/2", desc:"Mode de suivi GPS",               values:"1=significant (éco) · 2=move (précis)", cmd:"/dev/sps/io/OT_{u}_monitoringMode/<v>" },
       { name:"trigger",              type:"Texte",      unit:"—",   desc:"Déclencheur de l'envoi",          values:"p=ping · c=zone · r=cmd · u=manuel · t=timer", cmd:"/dev/sps/io/OT_{u}_trigger/<v>" },
       { name:"tag",                  type:"Texte",      unit:"—",   desc:"Nom de la zone actuelle (tag)",   values:'ex: "Maison"',           cmd:"/dev/sps/io/OT_{u}_tag/<v>" },
