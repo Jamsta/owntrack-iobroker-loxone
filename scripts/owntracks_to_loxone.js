@@ -2,7 +2,7 @@
  * ============================================================
  *  SCRIPT : owntracks_to_loxone.js
  *  AUTEUR : Kevin (config) + GenSpark AI (génération)
- *  VERSION: 5.7.0
+ *  VERSION: 5.8.0
  *  DATE   : 2026-04-23
  * ============================================================
  *
@@ -431,7 +431,7 @@ function processPayload(userName, rawJson) {
         // Activité & Mouvement
         if (data.motionactivities !== undefined) {
 
-            // Traduction anglais → français
+            // Table de traduction anglais → français
             var motionFR = {
                 "stationary"  : "immobile",
                 "walking"     : "marche",
@@ -440,7 +440,7 @@ function processPayload(userName, rawJson) {
                 "cycling"     : "vélo"
             };
 
-            // Code numérique : 1=immobile / 2=marche / 3=course / 4=véhicule / 5=vélo
+            // Table codes numériques (clés EN minuscules)
             var motionCodes = {
                 "stationary"  : 1,
                 "walking"     : 2,
@@ -449,23 +449,33 @@ function processPayload(userName, rawJson) {
                 "cycling"     : 5
             };
 
-            // Extraire la première activité (tableau ou string)
-            var firstActivity = Array.isArray(data.motionactivities)
-                ? data.motionactivities[0]
-                : String(data.motionactivities).split(",")[0].trim();
+            // Normaliser en tableau de strings anglaises (source toujours EN depuis iOS)
+            var rawList;
+            if (Array.isArray(data.motionactivities)) {
+                rawList = data.motionactivities;
+            } else {
+                rawList = String(data.motionactivities).split(",");
+            }
+            // Nettoyer chaque élément (trim + lowercase)
+            rawList = rawList.map(function(a) { return a.trim().toLowerCase(); });
 
-            // Texte en français (toutes les activités traduites)
-            var activities = Array.isArray(data.motionactivities)
-                ? data.motionactivities
-                : [String(data.motionactivities).trim()];
-            var motionText = activities
-                .map(function(a) { return motionFR[a.trim()] || a.trim(); })
+            // Première activité EN → pour le code numérique
+            var firstEN = rawList[0] || "";
+
+            // Texte FR : traduire chaque activité
+            var motionText = rawList
+                .map(function(a) { return motionFR[a] || a; })
                 .join(", ");
-            sendToLoxone(loxoneName(userName, "motionactivities"), motionText);
 
-            // Code numérique basé sur la première activité
-            var motionCode = motionCodes[firstActivity] || 0;
+            // Code numérique
+            var motionCode = motionCodes[firstEN] !== undefined ? motionCodes[firstEN] : 0;
+
+            sendToLoxone(loxoneName(userName, "motionactivities"),     motionText);
             sendToLoxone(loxoneName(userName, "motionactivitiescode"), motionCode);
+
+            if (CONFIG.DEBUG) {
+                log_debug("🚶 Motion: EN=" + firstEN + " → FR=" + motionText + " → code=" + motionCode);
+            }
         }
         if (data.m !== undefined) sendToLoxone(loxoneName(userName, "monitoringMode"), data.m);
 
