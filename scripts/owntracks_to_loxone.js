@@ -2,7 +2,7 @@
  * ============================================================
  *  SCRIPT : owntracks_to_loxone.js
  *  AUTEUR : Kevin (config) + GenSpark AI (génération)
- *  VERSION: 5.5.0
+ *  VERSION: 5.6.0
  *  DATE   : 2026-04-23
  * ============================================================
  *
@@ -137,6 +137,28 @@ if (CONFIG.ENCRYPTION_ENABLED) {
 //  DeviceID       = CONFIG.DEVICES[userName] ou userName
 //
 // ============================================================
+
+/**
+ * Calcule la distance en mètres entre deux points GPS
+ * Formule de Haversine — précision ~0.5%
+ *
+ * @param {number} lat1 - Latitude point 1 (degrés)
+ * @param {number} lon1 - Longitude point 1 (degrés)
+ * @param {number} lat2 - Latitude point 2 (degrés)
+ * @param {number} lon2 - Longitude point 2 (degrés)
+ * @returns {number} Distance en mètres (arrondie à l'entier)
+ */
+function haversineMeters(lat1, lon1, lat2, lon2) {
+    var R    = 6371000; // Rayon de la Terre en mètres
+    var toRad = Math.PI / 180;
+    var dLat = (lat2 - lat1) * toRad;
+    var dLon = (lon2 - lon1) * toRad;
+    var a    = Math.sin(dLat / 2) * Math.sin(dLat / 2)
+             + Math.cos(lat1 * toRad) * Math.cos(lat2 * toRad)
+             * Math.sin(dLon / 2) * Math.sin(dLon / 2);
+    var c    = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a));
+    return Math.round(R * c);
+}
 
 /**
  * Construit le topic de commande MQTT pour un utilisateur
@@ -339,6 +361,16 @@ function processPayload(userName, rawJson) {
         if (data.vel  !== undefined) sendToLoxone(loxoneName(userName, "velocity"),         data.vel);
         if (data.cog  !== undefined) sendToLoxone(loxoneName(userName, "course"),           data.cog);
         if (data.p    !== undefined) sendToLoxone(loxoneName(userName, "pressure"),         data.p);
+
+        // Distance depuis la maison (Haversine)
+        if (data.lat !== undefined && data.lon !== undefined
+            && CONFIG.HOME_LAT && CONFIG.HOME_LON
+            && CONFIG.HOME_LAT !== 0 && CONFIG.HOME_LON !== 0) {
+            var distM  = haversineMeters(data.lat, data.lon, CONFIG.HOME_LAT, CONFIG.HOME_LON);
+            var distKm = Math.round(distM / 10) / 100; // arrondi à 10 m → ex: 28.34
+            sendToLoxone(loxoneName(userName, "distanceHome"),   distM);
+            sendToLoxone(loxoneName(userName, "distanceHomeKm"), distKm);
+        }
 
         // Batterie
         if (data.batt !== undefined) sendToLoxone(loxoneName(userName, "battery"),       data.batt);

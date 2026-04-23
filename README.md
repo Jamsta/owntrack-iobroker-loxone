@@ -392,6 +392,7 @@ Projet développé pour une installation domotique **Loxone + ioBroker + OwnTrac
 
 | Version | Date | Description |
 |---|---|---|
+| **5.6.0** | 2026-04-23 | distanceHome (mètres) + distanceHomeKm — distance temps réel depuis la maison |
 | **5.5.0** | 2026-04-23 | motionactivitiescode — code numérique activité (1=stationary…5=cycling) |
 | **5.4.0** | 2026-04-23 | Filtrage nœuds réservés mqtt.0 — suppression faux utilisateur "owntracks" |
 | **5.3.0** | 2026-04-23 | Surveillance de tous les sous-topics mqtt.0 (dump/status/step/waypoint) |

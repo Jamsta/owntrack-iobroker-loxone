@@ -325,6 +325,8 @@ const SECTIONS = [
       { name:"velocity",         type:"Analogique", unit:"km/h",    desc:"Vitesse de déplacement",                  values:"ex: 0 ou 50",        cmd:"/dev/sps/io/OT_{u}_velocity/<v>" },
       { name:"course",           type:"Analogique", unit:"degrés",  desc:"Cap / direction",                         values:"0 – 360",            cmd:"/dev/sps/io/OT_{u}_course/<v>" },
       { name:"pressure",         type:"Analogique", unit:"kPa",     desc:"Pression barométrique (extendedData ON)", values:"ex: 101.08",         cmd:"/dev/sps/io/OT_{u}_pressure/<v>" },
+      { name:"distanceHome",     type:"Analogique", unit:"mètres",  desc:"Distance depuis la maison (Haversine)",  values:"ex: 28340",          cmd:"/dev/sps/io/OT_{u}_distanceHome/<v>" },
+      { name:"distanceHomeKm",   type:"Analogique", unit:"km",      desc:"Distance depuis la maison en km",        values:"ex: 28.34",          cmd:"/dev/sps/io/OT_{u}_distanceHomeKm/<v>" },
     ]
   },
   {

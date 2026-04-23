@@ -110,6 +110,15 @@ const CONFIG = {
     },
 
     // ----------------------------------------------------------
+    // 📐  COORDONNÉES GPS DE LA MAISON (pour distanceHome)
+    // ----------------------------------------------------------
+    // Utilisées pour calculer OT_<user>_distanceHome en temps réel.
+    // Renseigner les coordonnées GPS exactes de ta maison.
+    // (Les mêmes que dans ta zone "Maison" dans OwnTracks)
+    HOME_LAT : 0.0,    // ← Latitude  de ta maison  ex: 44.701515
+    HOME_LON : 0.0,    // ← Longitude de ta maison  ex: -0.846425
+
+    // ----------------------------------------------------------
     // ⚙️  PARAMÈTRES DU SCRIPT
     // ----------------------------------------------------------
     POLLING_INTERVAL_MS : 30000,   // Polling de sécurité (30 secondes)

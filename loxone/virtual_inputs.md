@@ -24,7 +24,7 @@ http://LOXONE_USER:LOXONE_PASS@LOXONE_IP/dev/sps/io/<NOM_ENTREE>/<VALEUR>
 
 ---
 
-## 📍 Position GPS (8 entrées)
+## 📍 Position GPS (10 entrées)
 
 | Nom entrée Loxone | Type | Unité | Description |
 |---|---|---|---|
@@ -36,6 +36,8 @@ http://LOXONE_USER:LOXONE_PASS@LOXONE_IP/dev/sps/io/<NOM_ENTREE>/<VALEUR>
 | `OT_<user>_velocity` | Analogique | km/h | Vitesse de déplacement |
 | `OT_<user>_course` | Analogique | degrés | Cap / direction (0-360°) |
 | `OT_<user>_pressure` | Analogique | kPa | Pression barométrique (iOS + extendedData) |
+| `OT_<user>_distanceHome` | Analogique | mètres | Distance depuis la maison (Haversine) |
+| `OT_<user>_distanceHomeKm` | Analogique | km | Distance depuis la maison en kilomètres |
 
 ---
 
@@ -173,6 +175,8 @@ http://LOXONE_USER:LOXONE_PASS@LOXONE_IP/dev/sps/io/<NOM_ENTREE>/<VALEUR>
 
 ```
 OT_kevin_latitude
+OT_kevin_distanceHome
+OT_kevin_distanceHomeKm
 OT_kevin_longitude
 OT_kevin_accuracy
 OT_kevin_altitude
