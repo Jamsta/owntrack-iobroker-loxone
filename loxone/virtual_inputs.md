@@ -254,3 +254,94 @@ Requis pour : `steps`, `stepsDistance`, `stepsFloorsUp`, `stepsFloorsDown`
 
 ### Transitions entrée/sortie
 Requis pour `lastTransitionEvent*` : créer au moins une zone dans l'onglet **Régions** de l'app OwnTracks.
+
+---
+
+## 🎮 Sorties Virtuelles HTTP — Commandes vers les téléphones
+
+Ces sorties permettent à Loxone d'envoyer des commandes directement aux iPhones via ioBroker.
+
+### Prérequis — Installer l'adaptateur simple-api
+
+1. ioBroker **Admin → Adaptateurs → Chercher "simple-api"**
+2. Installer → il tourne sur le **port 8087** par défaut
+3. Vérifier dans **Instances** que `simple-api.0` est vert
+
+> ⚠️ Le port **8081** (Admin ioBroker) **ne supporte PAS** `/setBulk`  
+> ✅ Utiliser uniquement le port **8087** (simple-api)
+
+---
+
+### Créer le périphérique Sortie Virtuelle HTTP
+
+1. Loxone Config → **Périphériques virtuels → Ajouter → Sortie HTTP virtuelle**
+2. **Nom** : `ioBroker Commands`
+3. **Adresse** : `http://192.168.10.20:8087`
+4. Laisser **Commande** vide au niveau du périphérique
+5. Ajouter les **commandes de sortie** ci-dessous (une par bouton)
+
+---
+
+### 📋 Commandes de sortie à créer
+
+#### Pour Kevin
+
+| Nom de la commande | Commande HTTP (chemin) | Effet |
+|---|---|---|
+| `GPS_Kevin` | `/setBulk?javascript.0.OT_CMD_reportLocation_kevin=1` | Force fix GPS immédiat |
+| `Steps_Kevin` | `/setBulk?javascript.0.OT_CMD_reportSteps_kevin=1` | Demande podomètre |
+| `Dump_Kevin` | `/setBulk?javascript.0.OT_CMD_dump_kevin=1` | Rapport d'état complet |
+| `Restart_Kevin` | `/setBulk?javascript.0.OT_CMD_restart_kevin=1` | Redémarre app OwnTracks |
+
+#### Pour Carole
+
+| Nom de la commande | Commande HTTP (chemin) | Effet |
+|---|---|---|
+| `GPS_Carole` | `/setBulk?javascript.0.OT_CMD_reportLocation_carole=1` | Force fix GPS immédiat |
+| `Steps_Carole` | `/setBulk?javascript.0.OT_CMD_reportSteps_carole=1` | Demande podomètre |
+| `Dump_Carole` | `/setBulk?javascript.0.OT_CMD_dump_carole=1` | Rapport d'état complet |
+| `Restart_Carole` | `/setBulk?javascript.0.OT_CMD_restart_carole=1` | Redémarre app OwnTracks |
+
+---
+
+### URL complètes (pour tester dans le navigateur)
+
+```
+# Forcer GPS Kevin
+http://192.168.10.20:8087/setBulk?javascript.0.OT_CMD_reportLocation_kevin=1
+
+# Forcer GPS Carole
+http://192.168.10.20:8087/setBulk?javascript.0.OT_CMD_reportLocation_carole=1
+
+# Demander podomètre Kevin
+http://192.168.10.20:8087/setBulk?javascript.0.OT_CMD_reportSteps_kevin=1
+
+# Rapport d'état Kevin
+http://192.168.10.20:8087/setBulk?javascript.0.OT_CMD_dump_kevin=1
+```
+
+> 💡 Coller ces URLs dans un navigateur sur le réseau local pour tester **avant** de configurer Loxone.
+
+---
+
+### Schéma de flux
+
+```
+Bouton Loxone (appui)
+     │
+     │  HTTP GET
+     ▼
+http://192.168.10.20:8087/setBulk?javascript.0.OT_CMD_reportLocation_kevin=1
+     │
+     │  simple-api.0 → setState("javascript.0.OT_CMD_reportLocation_kevin", 1)
+     ▼
+Script owntracks_to_loxone.js (détecte le changement d'état)
+     │
+     │  sendTo("mqtt.0", "publish", { topic: "owntracks/owntracks/kevin/cmd", ...})
+     ▼
+mqtt.0 (broker port 1884) → iPhone Kevin
+     │
+     │  {"_type":"cmd","action":"reportLocation"}
+     ▼
+iPhone publie sa position → Loxone OT_kevin_latitude/longitude mis à jour
+```

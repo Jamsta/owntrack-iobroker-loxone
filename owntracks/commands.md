@@ -1,6 +1,6 @@
 # 🎮 Commandes Bidirectionnelles OwnTracks — ioBroker → iPhone
 
-> **Version :** 2.0 — 2026-04-23  
+> **Version :** 2.1 — 2026-04-22  
 > **Script :** owntracks_to_loxone.js v5.4+
 
 ---
@@ -195,7 +195,10 @@ cmdSetConfiguration("kevin", { monitoring: 1 }); // éco batterie
 cmdSetConfiguration("kevin", { monitoring: 2 }); // mode précis
 
 // Envoyer les mêmes zones à tous les utilisateurs
-var zones = [{ _type:"waypoint", desc:"Maison", lat:44.7015, lon:-0.8464, rad:50, tst:Math.floor(Date.now()/1000) }];
+var zones = [
+    { _type:"waypoint", desc:"Maison",        lat:44.7015, lon:-0.8464, rad:50,  tst:Math.floor(Date.now()/1000) },
+    { _type:"waypoint", desc:"Ecole Gustave", lat:44.7007, lon:-0.8465, rad:100, tst:Math.floor(Date.now()/1000) }
+];
 ["kevin", "carole"].forEach(function(u) { cmdSetWaypoints(u, zones); });
 ```
 
@@ -223,12 +226,39 @@ javascript.0.
 
 ## 6. Intégration Loxone
 
-### Option A — Via les états ioBroker (le plus simple)
+### Option A — Via simple-api ioBroker (⭐ Recommandé)
 
-Depuis Loxone, créer une **Sortie Virtuelle HTTP** qui appelle :
+#### Installation de l'adaptateur simple-api
+
+1. ioBroker **Admin → Adaptateurs → Chercher "simple-api"**
+2. Installer → il tourne sur le **port 8087** par défaut
+
+#### Créer une Sortie Virtuelle HTTP dans Loxone Config
+
+1. Loxone Config → **Périphériques virtuels → Ajouter → Sortie HTTP virtuelle**
+2. **Adresse** : `http://192.168.10.20:8087`
+3. Ajouter des **commandes de sortie** (une par action) :
+
+| Commande Loxone | URL à configurer | Effet |
+|---|---|---|
+| GPS Kevin | `/setBulk?javascript.0.OT_CMD_reportLocation_kevin=1` | Force fix GPS Kevin |
+| GPS Carole | `/setBulk?javascript.0.OT_CMD_reportLocation_carole=1` | Force fix GPS Carole |
+| Pas Kevin | `/setBulk?javascript.0.OT_CMD_reportSteps_kevin=1` | Podomètre Kevin |
+| Pas Carole | `/setBulk?javascript.0.OT_CMD_reportSteps_carole=1` | Podomètre Carole |
+| Dump Kevin | `/setBulk?javascript.0.OT_CMD_dump_kevin=1` | Diagnostic Kevin |
+| Dump Carole | `/setBulk?javascript.0.OT_CMD_dump_carole=1` | Diagnostic Carole |
+| Restart Kevin | `/setBulk?javascript.0.OT_CMD_restart_kevin=1` | Redémarre app Kevin |
+| Restart Carole | `/setBulk?javascript.0.OT_CMD_restart_carole=1` | Redémarre app Carole |
+
+**URL complète exemple :**
 ```
-http://IOBROKER_IP:8082/setBulk?javascript.0.OT_CMD_reportLocation_kevin=1
+http://192.168.10.20:8087/setBulk?javascript.0.OT_CMD_reportLocation_kevin=1
 ```
+
+> ⚠️ Le port **8081** (Admin ioBroker) ne supporte **pas** `/setBulk` — utiliser **8087** (simple-api).  
+> ⚠️ Le port **8082** est l'ancien port de l'adaptateur "web" — préférer **8087** (simple-api dédié).
+
+---
 
 ### Option B — Via l'adaptateur loxone.0
 
@@ -240,6 +270,8 @@ on({ id: "loxone.0.trigger_forcer_gps_kevin", change: "any" }, function(obj) {
     }
 });
 ```
+
+---
 
 ### Option C — Appel direct dans le script principal
 
@@ -314,6 +346,12 @@ var zones = [
 3. Vérifier que `DEVICES[userName]` = le bon DeviceID (en minuscules)
 4. Vérifier que l'iPhone est connecté à `mqtt.0` port 1884
 5. Dans l'app OwnTracks : **cmd doit être ON** (Settings → Advanced)
+
+### `/setBulk` retourne une erreur 404
+
+- Vérifier que l'adaptateur **simple-api** est installé et actif (port 8087)
+- Tester dans le navigateur : `http://192.168.10.20:8087/get/javascript.0.OT_CMD_reportLocation_kevin`
+- Si "Not found" → vérifier que l'état existe dans ioBroker (script démarré ?)
 
 ### `sendTo("mqtt.0", ...)` retourne une erreur
 

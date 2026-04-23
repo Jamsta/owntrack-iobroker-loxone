@@ -301,12 +301,30 @@ mqtt.0.owntracks.owntracks.kevin.waypoint  ← _type=waypoint  (zones créées/m
 | `OT_CMD_restart_<user>` | Redémarre l'app OwnTracks |
 | `OT_CMD_dump_<user>` | Rapport complet d'état |
 
-Ou depuis un script ioBroker :
+### Depuis Loxone — via simple-api (port 8087)
+
+1. Installer l'adaptateur **simple-api** dans ioBroker (port **8087**)
+2. Créer une **Sortie Virtuelle HTTP** dans Loxone Config :
+   - Adresse : `http://192.168.10.20:8087`
+   - Ajouter des commandes de sortie :
+
+```
+GPS Kevin    → /setBulk?javascript.0.OT_CMD_reportLocation_kevin=1
+GPS Carole   → /setBulk?javascript.0.OT_CMD_reportLocation_carole=1
+Pas Kevin    → /setBulk?javascript.0.OT_CMD_reportSteps_kevin=1
+Dump Kevin   → /setBulk?javascript.0.OT_CMD_dump_kevin=1
+```
+
+> ⚠️ Port **8081** (Admin) = ne supporte pas `/setBulk`  
+> ✅ Port **8087** (simple-api) = requis
+
+### Depuis un script ioBroker
+
 ```javascript
 cmdReportLocation("kevin");
 cmdReportSteps("kevin");
 cmdDump("kevin");
-cmdSetWaypoints("kevin", [{ _type:"waypoint", desc:"Maison", lat:44.7, lon:-0.8, rad:100, tst:Math.floor(Date.now()/1000) }]);
+cmdSetWaypoints("kevin", [{ _type:"waypoint", desc:"Maison", lat:44.7015, lon:-0.8464, rad:50, tst:Math.floor(Date.now()/1000) }]);
 cmdSetConfiguration("kevin", { monitoring: 1 }); // mode économie batterie
 ```
 
